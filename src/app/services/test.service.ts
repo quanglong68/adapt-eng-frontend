@@ -1,0 +1,26 @@
+import apiClient from './api';
+import { Level,  } from '../types/common.type';
+import { QuestionResponse, SubmitTestRequest, TestSubmissionResponse } from '../types/test.type';
+
+
+
+export const testService = {
+    generateTest: async (level: Level): Promise<QuestionResponse[]> => {
+        const response = await apiClient.get<QuestionResponse[]>(`/test/generate/${level}`);
+        return response.data;
+    },
+
+    submitTest: async (submissionData: SubmitTestRequest): Promise<TestSubmissionResponse> => {
+        const response = await apiClient.post<TestSubmissionResponse>('/test/submit', submissionData);
+        return response.data;
+    },
+    
+    setLevel: async (userId: string, level: Level): Promise<String> => {
+        const response = await apiClient.post<String>('/test/set-level', { userId: userId, 
+        selectedLevel: level });
+        return response.data;
+    },
+
+
+
+};
