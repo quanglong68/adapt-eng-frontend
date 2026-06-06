@@ -10,8 +10,6 @@ export function TestExecution() {
   const { level } = useParams<{ level: Level }>();
   const navigate = useNavigate();
 
-  // ID người dùng giả lập
-  const userId = "d91bd8f6-37c5-4e2a-81c5-92f1a902180d";
 
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -281,7 +279,6 @@ export function TestExecution() {
                   }));
 
                   const submitData: SubmitTestRequest = {
-                    userId: userId,
                     testedLevel: level!,
                     answers: formattedAnswers,
                   };

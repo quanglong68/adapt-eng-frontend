@@ -15,8 +15,8 @@ export const testService = {
         return response.data;
     },
     
-    setLevel: async (userId: string, level: Level): Promise<String> => {
-        const response = await apiClient.post<String>('/test/set-level', { userId: userId, 
+    setLevel: async (level: Level): Promise<String> => {
+        const response = await apiClient.post<String>('/test/set-level', { 
         selectedLevel: level });
         return response.data;
     },

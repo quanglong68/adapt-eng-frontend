@@ -13,7 +13,6 @@ export interface UserAnswer {
 }
 
 export interface SubmitTestRequest {
-  userId: string; // UUID
   testedLevel: Level;
   answers: UserAnswer[];
 }
