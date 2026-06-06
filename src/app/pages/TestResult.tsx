@@ -60,9 +60,6 @@ export function TestResult() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  // Tạm để ID tĩnh, sau này nhớ đổi sang ID thật nha
-  const userId = "d91bd8f6-37c5-4e2a-81c5-92f1a902180d";
-
   const testResult = location.state?.dataResult as TestSubmissionResponse;
   const originalQuestions = location.state?.originalQuestions;
 
@@ -84,7 +81,7 @@ export function TestResult() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await testService.setLevel(userId, selectedLevel);
+      await testService.setLevel(selectedLevel);
       setShowSuccessDialog(true);
     } catch (error) {
       console.error(error);
