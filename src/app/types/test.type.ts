@@ -1,11 +1,5 @@
 import { Level, QuestionType } from './common.type';
 
-export interface QuestionResponse {
-  questionId: number;
-  content: string;
-  options: string[];
-  questionType: QuestionType;
-}
 
 export interface UserAnswer {
   questionId: number;

@@ -37,7 +37,7 @@ export function Login() {
                 await authService.login({ email, password });
 
                 // Đăng nhập thành công -> Đá sang Dashboard
-                navigate("/select-level");
+                navigate("/practice-execution");
             } else {
                 // Gọi API Register (authService đã tự lưu token vào localStorage rồi)
                 await authService.register({ fullName, email, password });

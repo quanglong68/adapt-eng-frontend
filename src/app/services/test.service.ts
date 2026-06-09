@@ -1,6 +1,7 @@
 import apiClient from './api';
 import { Level,  } from '../types/common.type';
-import { QuestionResponse, SubmitTestRequest, TestSubmissionResponse } from '../types/test.type';
+import { SubmitTestRequest, TestSubmissionResponse } from '../types/test.type';
+import { QuestionResponse } from '../types/common.type'; 
 
 
 
