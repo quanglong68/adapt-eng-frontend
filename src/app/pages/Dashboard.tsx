@@ -1,19 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Flame, Bell, Settings, BookOpen, Brain, Target, TrendingUp, ChevronRight, Zap, Clock, Star, Play, Map } from "lucide-react";
-
-interface Props { onNavigate: (screen: number) => void; }
+import { useNavigate } from "react-router-dom"; // SỬ DỤNG REACT ROUTER DOM
+import { Flame, Bell, BookOpen, Brain, Target, TrendingUp, ChevronRight, Zap, Clock, Star, Play, Map, Loader2 } from "lucide-react";
+import { dashboardService } from "../services/dashboard.service";
+import { DashboardSummaryResponse } from "../types/dashboard.type";
 
 const skills = ["Từ vựng", "Ngữ pháp", "Đọc hiểu", "Cụm từ"];
 
-const recentActivity = [
-  { label: "Cụm động từ", score: 4, total: 10, color: "#EF4444", time: "Hôm qua" },
-  { label: "Thì hoàn thành", score: 8, total: 10, color: "#10B981", time: "2 ngày trước" },
-  { label: "Từ vựng học thuật", score: 5, total: 10, color: "#F97316", time: "3 ngày trước" },
-];
+export function Dashboard() {
+  const navigate = useNavigate(); // KHỞI TẠO HOOK ĐIỀU HƯỚNG
 
-export function Screen6Dashboard() {
   const [selectedSkill, setSelectedSkill] = useState("Từ vựng");
+
+  // STATE LƯU DỮ LIỆU THẬT TỪ API
+  const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Lấy thông tin user từ LocalStorage
+  const userFullName = localStorage.getItem('fullName') || "Học viên";
+  const userEmail = localStorage.getItem('email') || "hocvien@email.com";
+
+  const getInitials = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const data = await dashboardService.getSummary();
+        setDashboardData(data);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu Dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // HIỂN THỊ LOADING KHI ĐANG GỌI API
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#F9FAFB" }}>
+        <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: "#4F46E5" }} />
+        <p className="font-semibold text-gray-500">Đang đồng bộ dữ liệu học tập...</p>
+      </div>
+    );
+  }
+
+  // FALLBACK NẾU LỖI
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F9FAFB" }}>
+        <p className="text-red-500 font-bold">Không thể kết nối đến máy chủ. Vui lòng thử lại sau.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
@@ -27,25 +73,20 @@ export function Screen6Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Streak */}
+          {/* Streak Data Thật */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl"
             style={{ background: "#FFF7ED", border: "1px solid #FED7AA" }}
           >
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            >
-              🔥
-            </motion.span>
-            <span className="text-sm font-bold" style={{ color: "#EA580C" }}>5 ngày</span>
+            <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}>🔥</motion.span>
+            <span className="text-sm font-bold" style={{ color: "#EA580C" }}>{dashboardData.streakDays} ngày</span>
           </motion.div>
 
-          {/* Level badge */}
+          {/* Level Data Thật */}
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: "#EEF2FF", border: "1px solid #C7D2FE" }}>
             <Star className="w-4 h-4" style={{ color: "#4F46E5" }} />
-            <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>B2</span>
+            <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>{dashboardData.currentLevel}</span>
           </div>
 
           <button className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-all" style={{ color: "#64748B" }}>
@@ -54,7 +95,7 @@ export function Screen6Dashboard() {
 
           <div className="w-9 h-9 rounded-full overflow-hidden" style={{ border: "2px solid #C7D2FE" }}>
             <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white" style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}>
-              NH
+              {getInitials(userFullName)}
             </div>
           </div>
         </div>
@@ -62,16 +103,12 @@ export function Screen6Dashboard() {
 
       <div className="px-8 py-8 max-w-6xl mx-auto">
         {/* Welcome */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="text-2xl font-bold" style={{ color: "#1E293B" }}>
-            Chào buổi sáng, Nguyễn Hải! 👋
+            Chào buổi sáng, {userFullName}! 👋
           </h1>
           <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hãy duy trì streak {" "}
-            <span className="font-semibold" style={{ color: "#EA580C" }}>🔥 5 ngày</span>{" "}
+            <span className="font-semibold" style={{ color: "#EA580C" }}>🔥 {dashboardData.streakDays} ngày</span>{" "}
             của bạn nhé!
           </p>
         </motion.div>
@@ -79,18 +116,16 @@ export function Screen6Dashboard() {
         <div className="grid grid-cols-3 gap-6">
           {/* Main content - left 2 cols */}
           <div className="col-span-2 space-y-6">
-            {/* Daily Mission */}
+
+            {/* Daily Mission Data Thật */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               className="rounded-3xl p-7 relative overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #9333EA 100%)",
                 boxShadow: "0 12px 40px rgba(79,70,229,0.35)",
               }}
             >
-              {/* BG decoration */}
               <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-15" style={{ background: "#fff" }} />
               <div className="absolute bottom-0 right-12 w-20 h-20 rounded-full opacity-10" style={{ background: "#fff" }} />
 
@@ -103,48 +138,31 @@ export function Screen6Dashboard() {
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">Đã đến lúc ôn tập! ⏰</h2>
                     <p className="text-sm" style={{ color: "rgba(199,210,254,0.9)" }}>
-                      AI phát hiện bạn đang quên <strong style={{ color: "#fff" }}>3 chủ điểm ngữ pháp</strong>.
-                      Hãy ôn lại ngay để đưa chúng vào bộ nhớ dài hạn.
+                      AI phát hiện bạn đang có <strong style={{ color: "#fff" }}>{dashboardData.dailyMissionCount} chủ điểm</strong> cần ôn gấp.
+                      Hãy luyện tập ngay để đưa chúng vào bộ nhớ dài hạn.
                     </p>
                   </div>
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                    className="text-4xl"
-                  >
+                  <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="text-4xl">
                     🧠
                   </motion.div>
-                </div>
-
-                {/* Progress */}
-                <div className="mb-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs" style={{ color: "rgba(199,210,254,0.8)" }}>Tiến độ hôm nay</span>
-                    <span className="text-xs font-semibold" style={{ color: "#fff" }}>0 / 15 phút</span>
-                  </div>
-                  <div className="h-2 rounded-full" style={{ background: "rgba(255,255,255,0.2)" }}>
-                    <div className="h-full w-0 rounded-full" style={{ background: "rgba(167,243,208,0.8)" }} />
-                  </div>
                 </div>
 
                 <motion.button
                   whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => alert("Bắt đầu ôn tập! (Tính năng đang phát triển)")}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
+                  onClick={() => navigate("/practice-execution")} // Điều hướng sang trang Practice
+                  className="mt-4 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
                   style={{ background: "#fff", color: "#4F46E5", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
                 >
                   <Play className="w-4 h-4" />
-                  Bắt đầu ôn tập (15 phút)
+                  Bắt đầu ôn tập
                 </motion.button>
               </div>
             </motion.div>
 
-            {/* Generate Practice */}
+            {/* Sinh đề luyện tập */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
               className="bg-white rounded-3xl p-6"
               style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
             >
@@ -154,11 +172,7 @@ export function Screen6Dashboard() {
                 </div>
                 <h3 className="font-bold" style={{ color: "#1E293B" }}>Sinh đề luyện tập bằng AI</h3>
               </div>
-
-              <p className="text-sm mb-5" style={{ color: "#64748B" }}>
-                Chọn kỹ năng muốn luyện tập. AI sẽ tạo bài tập phù hợp với trình độ và lỗ hổng kiến thức của bạn.
-              </p>
-
+              <p className="text-sm mb-5" style={{ color: "#64748B" }}>Chọn kỹ năng muốn luyện tập. AI sẽ tạo bài tập phù hợp với trình độ.</p>
               <div className="flex flex-wrap gap-2 mb-5">
                 {skills.map((skill) => (
                   <motion.button
@@ -177,86 +191,77 @@ export function Screen6Dashboard() {
                   </motion.button>
                 ))}
               </div>
-
               <motion.button
-                whileHover={{ scale: 1.015, boxShadow: "0 8px 24px rgba(79,70,229,0.35)" }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/practice")} // Điều hướng sinh đề sang practice
                 className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm flex items-center justify-center gap-2"
                 style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 4px 16px rgba(79,70,229,0.3)" }}
               >
                 <Brain className="w-4 h-4" />
-                Sinh đề luyện tập: {selectedSkill}
+                Sinh đề: {selectedSkill}
               </motion.button>
             </motion.div>
 
-            {/* Recent activity */}
+            {/* Hoạt động gần đây - Data thật */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
               className="bg-white rounded-3xl p-6"
               style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold" style={{ color: "#1E293B" }}>Hoạt động gần đây</h3>
-                <button className="text-xs font-semibold" style={{ color: "#4F46E5" }}>Xem tất cả</button>
               </div>
+
               <div className="space-y-4">
-                {recentActivity.map((item, i) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + i * 0.1 }}
-                    className="flex items-center gap-4"
-                  >
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: `${item.color}15` }}>
-                      <BookOpen className="w-4 h-4" style={{ color: item.color }} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</span>
-                        <span className="text-xs" style={{ color: "#94A3B8" }}>{item.time}</span>
+                {dashboardData.recentActivities.length === 0 ? (
+                  <p className="text-sm text-center text-gray-500 py-4">Chưa có hoạt động nào. Hãy làm bài tập ngay!</p>
+                ) : (
+                  dashboardData.recentActivities.map((item, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.1 }} className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
+                        <BookOpen className="w-4 h-4" style={{ color: item.color }} />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full" style={{ background: "#F1F5F9" }}>
-                          <div className="h-full rounded-full" style={{ width: `${(item.score / item.total) * 100}%`, background: item.color }} />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</span>
+                          <span className="text-xs" style={{ color: "#94A3B8" }}>{item.time}</span>
                         </div>
-                        <span className="text-xs font-semibold" style={{ color: item.color }}>{item.score}/{item.total}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 rounded-full" style={{ background: "#F1F5F9" }}>
+                            <div className="h-full rounded-full" style={{ width: `${(item.score / item.total) * 100}%`, background: item.color }} />
+                          </div>
+                          <span className="text-xs font-semibold" style={{ color: item.color }}>{item.score}/{item.total}</span>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                )}
               </div>
             </motion.div>
           </div>
 
           {/* Right sidebar */}
           <div className="space-y-6">
-            {/* User stats */}
+            {/* User stats - Data thật */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-white rounded-3xl p-6"
-              style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
+              className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
             >
               <div className="text-center mb-5">
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3"
                   style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}>
-                  NH
+                  {getInitials(userFullName)}
                 </div>
-                <div className="font-bold" style={{ color: "#1E293B" }}>Nguyễn Hải</div>
-                <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>nguyenhai@email.com</div>
+                <div className="font-bold" style={{ color: "#1E293B" }}>{userFullName}</div>
+                <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>{userEmail}</div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Cấp độ", value: "B2", icon: "🎯" },
-                  { label: "Streak", value: "5 ngày", icon: "🔥" },
-                  { label: "Tổng câu", value: "342", icon: "✅" },
-                  { label: "Điểm XP", value: "1,280", icon: "⭐" },
+                  { label: "Cấp độ", value: dashboardData.currentLevel, icon: "🎯" },
+                  { label: "Streak", value: `${dashboardData.streakDays} ngày`, icon: "🔥" },
+                  { label: "Số nhiệm vụ", value: `${dashboardData.dailyMissionCount}`, icon: "✅" },
+                  { label: "Điểm XP", value: dashboardData.totalXP.toLocaleString(), icon: "⭐" },
                 ].map((stat) => (
                   <div key={stat.label} className="p-3 rounded-2xl text-center" style={{ background: "#F8FAFC", border: "1px solid #F1F5F9" }}>
                     <div className="text-lg mb-0.5">{stat.icon}</div>
@@ -267,26 +272,23 @@ export function Screen6Dashboard() {
               </div>
             </motion.div>
 
-            {/* Quick links */}
+            {/* Quick links - Đã tích hợp useNavigate */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25 }}
-              className="bg-white rounded-3xl p-6"
-              style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
+              className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
             >
               <h3 className="font-bold mb-4" style={{ color: "#1E293B" }}>Truy cập nhanh</h3>
               <div className="space-y-2">
                 {[
-                  { icon: Map, label: "Bản đồ kiến thức", screen: 7, color: "#4F46E5" },
-                  { icon: Target, label: "Ôn tập cá nhân hóa", screen: 8, color: "#10B981" },
-                  { icon: TrendingUp, label: "Xem tiến độ", screen: 7, color: "#F97316" },
-                  { icon: Clock, label: "Xem lại sai sót", screen: 5, color: "#EF4444" },
+                  { icon: Map, label: "Bản đồ kiến thức", path: "/knowledge-map", color: "#4F46E5" },
+                  { icon: Target, label: "Ôn tập cá nhân hóa", path: "/practice", color: "#10B981" },
+                  { icon: TrendingUp, label: "Xem tiến độ", path: "/knowledge-map", color: "#F97316" },
+                  { icon: Clock, label: "Xem lại sai sót", path: "/review", color: "#EF4444" },
                 ].map((item) => (
                   <motion.button
                     key={item.label}
                     whileHover={{ x: 4, background: "#F8FAFC" }}
-                    onClick={() => alert(`Đang chuyển đến ${item.label}`)}
+                    onClick={() => navigate(item.path)} // Điều hướng tới React Route
                     className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all"
                   >
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
@@ -301,15 +303,12 @@ export function Screen6Dashboard() {
 
             {/* Tip */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.35 }}
-              className="rounded-2xl p-4"
-              style={{ background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)", border: "1px solid #FED7AA" }}
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}
+              className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)", border: "1px solid #FED7AA" }}
             >
               <div className="text-xl mb-2">💡</div>
               <p className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
-                <strong>Mẹo học tập:</strong> Ôn tập đều đặn 15 phút mỗi ngày hiệu quả hơn học dồn 2 giờ một lần nhờ kỹ thuật <strong>Spaced Repetition</strong>.
+                <strong>Mẹo học tập:</strong> Ôn tập đều đặn 15 phút mỗi ngày hiệu quả hơn học dồn 2 giờ một lần nhờ thuật toán <strong>Spaced Repetition</strong>.
               </p>
             </motion.div>
           </div>

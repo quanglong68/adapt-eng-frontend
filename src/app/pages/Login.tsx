@@ -37,13 +37,13 @@ export function Login() {
                 await authService.login({ email, password });
 
                 // Đăng nhập thành công -> Đá sang Dashboard
-                navigate("/practice-execution");
+                navigate("/dashboard");
             } else {
                 // Gọi API Register (authService đã tự lưu token vào localStorage rồi)
                 await authService.register({ fullName, email, password });
 
 
-                navigate("/select-level");
+                navigate("/dashboard");
             }
         } catch (error: any) {
             console.error("Lỗi xác thực:", error);
