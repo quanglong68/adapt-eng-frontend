@@ -33,21 +33,20 @@ export function Login() {
 
         try {
             if (tab === "login") {
-                // Gọi API Login (authService đã tự lưu token vào localStorage rồi)
-                await authService.login({ email, password });
+                const response = await authService.login({ email, password });
 
-                // Đăng nhập thành công -> Đá sang Dashboard
-                navigate("/dashboard");
+                if (!response.learningTrack) {
+                    navigate("/select-track"); 
+                } else {
+                    localStorage.setItem('learningTrack', response.learningTrack);
+                    navigate("/dashboard"); 
+                }
             } else {
-                // Gọi API Register (authService đã tự lưu token vào localStorage rồi)
                 await authService.register({ fullName, email, password });
-
-
-                navigate("/dashboard");
+                navigate("/select-track"); 
             }
         } catch (error: any) {
             console.error("Lỗi xác thực:", error);
-            // Hiển thị message lỗi từ Backend trả về, hoặc câu mặc định
             setErrorMsg(error.response?.data?.message || "Tài khoản hoặc mật khẩu không chính xác.");
         } finally {
             setIsLoading(false);

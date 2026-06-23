@@ -1,3 +1,4 @@
+import { LearningTrack } from "./common.type";
 
 export interface LoginRequest {
   email: string;
@@ -15,4 +16,5 @@ export interface AuthResponse {
   userId: string;
   email: string;
   fullName: string;
+  learningTrack: LearningTrack | null;
 }
