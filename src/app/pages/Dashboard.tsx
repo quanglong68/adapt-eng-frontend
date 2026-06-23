@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { useNavigate } from "react-router-dom"; // SỬ DỤNG REACT ROUTER DOM
+import { useNavigate } from "react-router-dom";
 import { Flame, Bell, BookOpen, Brain, Target, TrendingUp, ChevronRight, Zap, Clock, Star, Play, Map, Loader2 } from "lucide-react";
 import { dashboardService } from "../services/dashboard.service";
 import { DashboardSummaryResponse } from "../types/dashboard.type";
@@ -8,17 +8,17 @@ import { DashboardSummaryResponse } from "../types/dashboard.type";
 const skills = ["Từ vựng", "Ngữ pháp", "Đọc hiểu", "Cụm từ"];
 
 export function Dashboard() {
-  const navigate = useNavigate(); // KHỞI TẠO HOOK ĐIỀU HƯỚNG
+  const navigate = useNavigate();
 
   const [selectedSkill, setSelectedSkill] = useState("Từ vựng");
-
-  // STATE LƯU DỮ LIỆU THẬT TỪ API
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Lấy thông tin user từ LocalStorage
   const userFullName = localStorage.getItem('fullName') || "Học viên";
   const userEmail = localStorage.getItem('email') || "hocvien@email.com";
+
+  // 👇 Lấy currentTrack để rẽ nhánh điều hướng
+  const currentTrack = localStorage.getItem('learningTrack') || "GENERAL";
 
   const getInitials = (name: string) => {
     const parts = name.split(' ');
@@ -38,11 +38,9 @@ export function Dashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
 
-  // HIỂN THỊ LOADING KHI ĐANG GỌI API
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#F9FAFB" }}>
@@ -52,7 +50,6 @@ export function Dashboard() {
     );
   }
 
-  // FALLBACK NẾU LỖI
   if (!dashboardData) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#F9FAFB" }}>
@@ -60,6 +57,15 @@ export function Dashboard() {
       </div>
     );
   }
+
+  // Hàm xử lý điều hướng Ôn tập thông minh (SM-2)
+  const handleStartPractice = () => {
+    if (currentTrack === "TOEIC") {
+      navigate("/toeic/practice");
+    } else {
+      navigate("/practice-execution");
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
@@ -73,7 +79,6 @@ export function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Streak Data Thật */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl"
@@ -83,7 +88,6 @@ export function Dashboard() {
             <span className="text-sm font-bold" style={{ color: "#EA580C" }}>{dashboardData.streakDays} ngày</span>
           </motion.div>
 
-          {/* Level Data Thật */}
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: "#EEF2FF", border: "1px solid #C7D2FE" }}>
             <Star className="w-4 h-4" style={{ color: "#4F46E5" }} />
             <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>{dashboardData.currentLevel}</span>
@@ -114,7 +118,6 @@ export function Dashboard() {
         </motion.div>
 
         <div className="grid grid-cols-3 gap-6">
-          {/* Main content - left 2 cols */}
           <div className="col-span-2 space-y-6">
 
             {/* Daily Mission Data Thật */}
@@ -150,7 +153,7 @@ export function Dashboard() {
                 <motion.button
                   whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/practice-execution")} // Điều hướng sang trang Practice
+                  onClick={handleStartPractice} // 👇 SỬA ĐIỀU HƯỚNG TẠI ĐÂY
                   className="mt-4 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
                   style={{ background: "#fff", color: "#4F46E5", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
                 >
@@ -193,7 +196,10 @@ export function Dashboard() {
               </div>
               <motion.button
                 whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/practice")} // Điều hướng sinh đề sang practice
+                onClick={() => {
+                  // Màn hình sinh đề luyện tập tuỳ chọn - nếu chưa có thì tạm thời trỏ về practice
+                  handleStartPractice();
+                }}
                 className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm flex items-center justify-center gap-2"
                 style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 4px 16px rgba(79,70,229,0.3)" }}
               >
@@ -272,7 +278,7 @@ export function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Quick links - Đã tích hợp useNavigate */}
+            {/* Quick links */}
             <motion.div
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
               className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
@@ -281,14 +287,12 @@ export function Dashboard() {
               <div className="space-y-2">
                 {[
                   { icon: Map, label: "Bản đồ kiến thức", path: "/knowledge-map", color: "#4F46E5" },
-                  { icon: Target, label: "Ôn tập cá nhân hóa", path: "/practice", color: "#10B981" },
-                  { icon: TrendingUp, label: "Xem tiến độ", path: "/knowledge-map", color: "#F97316" },
-                  { icon: Clock, label: "Xem lại sai sót", path: "/review", color: "#EF4444" },
+                  { icon: Target, label: "Bài đánh giá năng lực", path: "/select-level", color: "#10B981" },
                 ].map((item) => (
                   <motion.button
                     key={item.label}
                     whileHover={{ x: 4, background: "#F8FAFC" }}
-                    onClick={() => navigate(item.path)} // Điều hướng tới React Route
+                    onClick={() => navigate(item.path)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all"
                   >
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
