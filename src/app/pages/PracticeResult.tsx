@@ -1,48 +1,11 @@
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, CheckCircle2, Eye, ArrowLeft } from "lucide-react";
+import { ChevronRight, CheckCircle2, Eye } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
+
+import { CircularProgress } from "../components/shared";
 import { DailyReviewResultResponse } from "../types/practice.type";
-
-function CircularProgress({ value, max }: { value: number; max: number }) {
-    const radius = 80;
-    const circumference = 2 * Math.PI * radius;
-    const pct = max > 0 ? (value / max) * 100 : 0;
-    const offset = circumference - (pct / 100) * circumference;
-
-    return (
-        <div className="relative w-52 h-52">
-            <svg viewBox="0 0 200 200" className="w-full h-full" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="100" cy="100" r={radius} fill="none" stroke="#E1F5FE" strokeWidth="14" />
-                <motion.circle
-                    cx="100" cy="100" r={radius} fill="none" stroke="url(#practiceGrad)" strokeWidth="14" strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    initial={{ strokeDashoffset: circumference }}
-                    animate={{ strokeDashoffset: offset }}
-                    transition={{ duration: 1.8, ease: "easeOut", delay: 0.5 }}
-                />
-                <defs>
-                    <linearGradient id="practiceGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#10B981" />
-                        <stop offset="100%" stopColor="#059669" />
-                    </linearGradient>
-                </defs>
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <motion.span
-                    initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 1, duration: 0.5, type: "spring" }}
-                    className="text-4xl font-bold"
-                    style={{ color: "#10B981" }}
-                >
-                    {value}/{max}
-                </motion.span>
-                <span className="text-xs mt-1" style={{ color: "#94A3B8" }}>câu đúng</span>
-            </div>
-        </div>
-    );
-}
 
 export function PracticeResult() {
     const navigate = useNavigate();
@@ -104,7 +67,7 @@ export function PracticeResult() {
                     style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.08)", border: "1px solid #F1F5F9" }}
                 >
                     <div className="flex flex-col items-center justify-center gap-6">
-                        <CircularProgress value={practiceResult.correctAnswers} max={practiceResult.totalQuestions} />
+                        <CircularProgress value={practiceResult.correctAnswers} max={practiceResult.totalQuestions} variant="practice" />
                         <div>
                             <div className="font-bold text-lg mb-1" style={{ color: "#1E293B" }}>
                                 Tỷ lệ chính xác: {accuracyPercentage.toFixed(1)}%

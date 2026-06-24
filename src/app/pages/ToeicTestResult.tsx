@@ -3,42 +3,12 @@ import { motion } from "motion/react";
 import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
+
+import { CircularProgress } from "../components/shared";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "../components/ui/alert-dialog";
 import { ToeicTestSubmissionResponse } from "../types/toeic.type";
 import { Level, getLevelDisplay } from "../types/common.type";
 import { testService } from "../services/test.service";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "../components/ui/alert-dialog";
-
-function CircularProgress({ value, max }: { value: number; max: number }) {
-    const radius = 80;
-    const circumference = 2 * Math.PI * radius;
-    const pct = max > 0 ? (value / max) * 100 : 0;
-    const offset = circumference - (pct / 100) * circumference;
-
-    return (
-        <div className="relative w-52 h-52">
-            <svg viewBox="0 0 200 200" className="w-full h-full" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="100" cy="100" r={radius} fill="none" stroke="#FEE2E2" strokeWidth="14" />
-                <motion.circle
-                    cx="100" cy="100" r={radius} fill="none" stroke="url(#grad)" strokeWidth="14" strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    initial={{ strokeDashoffset: circumference }}
-                    animate={{ strokeDashoffset: offset }}
-                    transition={{ duration: 1.8, ease: "easeOut", delay: 0.2 }}
-                />
-                <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#4F46E5" />
-                        <stop offset="100%" stopColor="#7C3AED" />
-                    </linearGradient>
-                </defs>
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-5xl font-black" style={{ color: "#312E81", letterSpacing: "-1px" }}>{value}</span>
-                <span className="text-sm font-bold" style={{ color: "#6366F1" }}>/ {max} câu</span>
-            </div>
-        </div>
-    );
-}
 
 export function ToeicTestResult() {
     const location = useLocation();
@@ -87,7 +57,7 @@ export function ToeicTestResult() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] p-8 md:p-12 shadow-2xl relative z-10 text-center" style={{ border: "1px solid #F1F5F9" }}>
 
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.3 }} className="flex justify-center mb-8">
-                        <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} />
+                        <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} variant="toeic-test" />
                     </motion.div>
 
                     <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">Đánh giá Năng lực TOEIC</h2>

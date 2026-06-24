@@ -1,6 +1,8 @@
 import { motion } from "motion/react";
 import { X, Check, Zap, ArrowLeft, BookOpen } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+import { renderPassageContent } from "../components/shared";
 import { ToeicPracticeSubmissionResponse, ToeicPassageResponse } from "../types/toeic.type";
 
 export function ToeicPracticeReviewMistakes() {
@@ -24,15 +26,7 @@ export function ToeicPracticeReviewMistakes() {
         );
     }
 
-    const renderPassageContent = (text: string) => {
-        const parts = text.split(/(\[\d+\])/g);
-        return parts.map((part, index) => {
-            if (part.match(/\[\d+\]/)) {
-                return <strong key={index} className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mx-1">{part}</strong>;
-            }
-            return <span key={index}>{part}</span>;
-        });
-    };
+    const renderPassage = (text: string) => renderPassageContent(text, "emerald");
 
     let globalQuestionNumber = 1;
 
@@ -71,7 +65,7 @@ export function ToeicPracticeReviewMistakes() {
                                             <span className="font-bold text-sm text-emerald-700">{block.toeicPart.replace("_", " ")}</span>
                                         </div>
                                         <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">
-                                            {renderPassageContent(block.passageContent || "")}
+                                            {renderPassage(block.passageContent || "")}
                                         </div>
                                     </div>
                                 )}
