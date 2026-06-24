@@ -1,6 +1,8 @@
 import { motion } from "motion/react";
 import { X, Check, Zap, ArrowLeft, BookOpen } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+import { renderPassageContent } from "../components/shared";
 import { ToeicTestSubmissionResponse, ToeicPassageResponse } from "../types/toeic.type";
 
 export function ToeicTestReviewMistakes() {
@@ -26,16 +28,8 @@ export function ToeicTestReviewMistakes() {
         );
     }
 
-    // Hàm tô đậm chỗ đục lỗ cho Part 6
-    const renderPassageContent = (text: string) => {
-        const parts = text.split(/(\[\d+\])/g);
-        return parts.map((part, index) => {
-            if (part.match(/\[\d+\]/)) {
-                return <strong key={index} className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mx-1">{part}</strong>;
-            }
-            return <span key={index}>{part}</span>;
-        });
-    };
+    // Hàm tô đậm chỗ đục lỗ cho Part 6 — dùng shared utility
+    const renderPassage = (text: string) => renderPassageContent(text, "indigo");
 
     let globalQuestionNumber = 1;
 
@@ -78,7 +72,7 @@ export function ToeicTestReviewMistakes() {
                                             <span className="font-bold text-sm text-indigo-700">{block.toeicPart.replace("_", " ")}</span>
                                         </div>
                                         <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">
-                                            {renderPassageContent(block.passageContent || "")}
+                                            {renderPassage(block.passageContent || "")}
                                         </div>
                                     </div>
                                 )}

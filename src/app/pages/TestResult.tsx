@@ -3,55 +3,12 @@ import { motion } from "motion/react";
 import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
-import { testService } from "../services/test.service"; // Nhớ import testService
+
+import { CircularProgress } from "../components/shared";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "../components/ui/alert-dialog";
+import { testService } from "../services/test.service";
 import { TestSubmissionResponse } from "../types/test.type";
 import { Level } from "../types/common.type";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "../components/ui/alert-dialog";
-function CircularProgress({ value, max }: { value: number; max: number }) {
-  const radius = 80;
-  const circumference = 2 * Math.PI * radius;
-  const pct = (value / max) * 100;
-  const offset = circumference - (pct / 100) * circumference;
-
-  return (
-    <div className="relative w-52 h-52">
-      <svg viewBox="0 0 200 200" className="w-full h-full" style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="100" cy="100" r={radius} fill="none" stroke="#FEE2E2" strokeWidth="14" />
-        <motion.circle
-          cx="100"
-          cy="100"
-          r={radius}
-          fill="none"
-          stroke="url(#grad)"
-          strokeWidth="14"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.8, ease: "easeOut", delay: 0.5 }}
-        />
-        <defs>
-          <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#F43F5E" />
-            <stop offset="100%" stopColor="#EF4444" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <motion.span
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5, type: "spring" }}
-          className="text-4xl font-bold"
-          style={{ color: "#EF4444" }}
-        >
-          {value}/{max}
-        </motion.span>
-        <span className="text-xs mt-1" style={{ color: "#94A3B8" }}>câu đúng</span>
-      </div>
-    </div>
-  );
-}
 
 export function TestResult() {
   const navigate = useNavigate();
@@ -123,7 +80,7 @@ export function TestResult() {
         >
           <div className="flex flex-col items-center justify-center gap-6">
             <div className="flex flex-col items-center">
-              <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} />
+              <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} variant="test" />
 
               <div className="mt-4">
                 <div className="font-bold text-base mb-1" style={{ color: "#1E293B" }}>
