@@ -16,6 +16,9 @@ import { ToeicTestReviewMistakes } from "./pages/ToeicTestReviewMistakes";
 import { ToeicPracticeExecution } from "./pages/ToeicPracticeExecution";
 import { ToeicPracticeResult } from "./pages/ToeicPracticeResult";
 import { ToeicPracticeReviewMistakes } from "./pages/ToeicPracticeReviewMistakes";
+import { UserProfile } from "./pages/UserProfile";
+import { Pricing } from "./pages/Pricing";
+import { PaymentResult } from "./pages/PaymentResult";
 
 
 export default function App() {
@@ -42,6 +45,10 @@ export default function App() {
           <Route path="/toeic/practice" element={<ToeicPracticeExecution />} />
           <Route path="/toeic/practice-result" element={<ToeicPracticeResult />} />
           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
+
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/payment-result" element={<PaymentResult />} />
         </Routes>
       </BrowserRouter>
     </div>

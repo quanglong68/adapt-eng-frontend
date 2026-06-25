@@ -1,10 +1,15 @@
 import apiClient from './api';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth.type';
 import { LearningTrack } from '../types/common.type';
+import { UserProfileResponse } from '../types/user.type';
 
-  export const userService = {
+export const userService = {
+  getProfile: async (): Promise<UserProfileResponse> => {
+    const response = await apiClient.get<UserProfileResponse>('/users/me');
+    return response.data;
+  },
+
   setLearningTrack: async (track: LearningTrack): Promise<void> => {
     await apiClient.post('/user/set-track', { learningTrack: track });
-    localStorage.setItem('learningTrack', track); 
-  }
+    localStorage.setItem('learningTrack', track);
+  },
 };

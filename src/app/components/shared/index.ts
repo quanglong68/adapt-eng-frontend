@@ -5,5 +5,6 @@ export { ProgressBar } from "./ProgressBar";
 export { GeneralOptionButton, ToeicOptionButton } from "./OptionButton";
 export { MistakeCard } from "./MistakeCard";
 export { renderPassageContent } from "./renderPassageContent";
+export { PremiumGuard } from "./PremiumGuard";
 export type * from "./types";
 export { EXECUTION_THEMES } from "./types";
