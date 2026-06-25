@@ -1,0 +1,62 @@
+diff --git a/src/app/App.tsx b/src/app/App.tsx
+index 564e0d9..fca1654 100644
+--- a/src/app/App.tsx
++++ b/src/app/App.tsx
+@@ -16,6 +16,9 @@ import { ToeicTestReviewMistakes } from "./pages/ToeicTestReviewMistakes";
+ import { ToeicPracticeExecution } from "./pages/ToeicPracticeExecution";
+ import { ToeicPracticeResult } from "./pages/ToeicPracticeResult";
+ import { ToeicPracticeReviewMistakes } from "./pages/ToeicPracticeReviewMistakes";
++import { UserProfile } from "./pages/UserProfile";
++import { Pricing } from "./pages/Pricing";
++import { PaymentResult } from "./pages/PaymentResult";
+ 
+ 
+ export default function App() {
+@@ -42,6 +45,10 @@ export default function App() {
+           <Route path="/toeic/practice" element={<ToeicPracticeExecution />} />
+           <Route path="/toeic/practice-result" element={<ToeicPracticeResult />} />
+           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
++
++          <Route path="/profile" element={<UserProfile />} />
++          <Route path="/pricing" element={<Pricing />} />
++          <Route path="/payment-result" element={<PaymentResult />} />
+         </Routes>
+       </BrowserRouter>
+     </div>
+diff --git a/src/app/components/shared/index.ts b/src/app/components/shared/index.ts
+index 2a6c2fe..fbb3363 100644
+--- a/src/app/components/shared/index.ts
++++ b/src/app/components/shared/index.ts
+@@ -5,5 +5,6 @@ export { ProgressBar } from "./ProgressBar";
+ export { GeneralOptionButton, ToeicOptionButton } from "./OptionButton";
+ export { MistakeCard } from "./MistakeCard";
+ export { renderPassageContent } from "./renderPassageContent";
++export { PremiumGuard } from "./PremiumGuard";
+ export type * from "./types";
+ export { EXECUTION_THEMES } from "./types";
+diff --git a/src/app/services/user.service.ts b/src/app/services/user.service.ts
+index 0e06a87..681d8f3 100644
+--- a/src/app/services/user.service.ts
++++ b/src/app/services/user.service.ts
+@@ -1,10 +1,15 @@
+ import apiClient from './api';
+-import { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth.type';
+ import { LearningTrack } from '../types/common.type';
++import { UserProfileResponse } from '../types/user.type';
++
++export const userService = {
++  getProfile: async (): Promise<UserProfileResponse> => {
++    const response = await apiClient.get<UserProfileResponse>('/users/me');
++    return response.data;
++  },
+ 
+-  export const userService = {
+   setLearningTrack: async (track: LearningTrack): Promise<void> => {
+     await apiClient.post('/user/set-track', { learningTrack: track });
+-    localStorage.setItem('learningTrack', track); 
+-  }
+-};
+\ No newline at end of file
++    localStorage.setItem('learningTrack', track);
++  },
++};
