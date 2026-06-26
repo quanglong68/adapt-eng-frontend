@@ -3,6 +3,7 @@ import {
   CreatePaymentUrlRequest,
   CreatePaymentUrlResponse,
   SubscriptionPackageOption,
+  TransactionHistoryItem,
 } from '../types/payment.type';
 
 export const MOCK_PACKAGES: SubscriptionPackageOption[] = [
@@ -31,6 +32,16 @@ export const paymentService = {
   verifyPayment: async (params: Record<string, string>): Promise<{ success: boolean; message: string }> => {
     const queryString = new URLSearchParams(params).toString();
     const response = await apiClient.get<{ success: boolean; message: string }>(`/payment/vnpay-return?${queryString}`);
+    return response.data;
+  },
+
+  cancelTransaction: async (transactionId: number): Promise<{ message: string }> => {
+    const response = await apiClient.put<{ message: string }>(`/payment/cancel/${transactionId}`);
+    return response.data;
+  },
+
+  getTransactionHistory: async (): Promise<TransactionHistoryItem[]> => {
+    const response = await apiClient.get<TransactionHistoryItem[]>('/payment/history');
     return response.data;
   },
 };

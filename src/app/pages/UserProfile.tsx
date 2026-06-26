@@ -61,7 +61,6 @@ export function UserProfile() {
 
   return (
     <div className="min-h-screen pb-12" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
-      {/* Header gọn gàng */}
       <div className="bg-white border-b px-8 py-4 flex items-center justify-between sticky top-0 z-10" style={{ borderColor: "#E5E7EB" }}>
         <div className="flex items-center gap-4">
           <motion.button
@@ -77,13 +76,11 @@ export function UserProfile() {
       </div>
 
       <div className="max-w-3xl mx-auto mt-8 px-6 space-y-6">
-        {/* Thẻ Avatar & Info chính */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-3xl p-8 relative overflow-hidden"
           style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}
         >
-          {/* Background decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60 pointer-events-none" />
 
           <div className="relative z-10 flex items-center gap-6">
@@ -112,7 +109,6 @@ export function UserProfile() {
           </div>
         </motion.div>
 
-        {/* Lưới Thống kê */}
         <div className="grid grid-cols-2 gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
@@ -145,7 +141,6 @@ export function UserProfile() {
           </motion.div>
         </div>
 
-        {/* Khối quản lý Gói VIP */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
         >
@@ -157,7 +152,8 @@ export function UserProfile() {
 
               <div className="relative z-10">
                 <h3 className="text-lg font-medium text-gray-400 mb-1">Gói dịch vụ đang kích hoạt</h3>
-                <p className="text-3xl font-bold text-yellow-500 mb-6">{profile.currentPackageName || "AdaptEng Premium"}</p>
+                {/* Đã đổi tên hiển thị thành "GÓI VIP" */}
+                <p className="text-3xl font-bold text-yellow-500 mb-6">GÓI VIP</p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.1)" }}>
                   <Clock className="w-4 h-4 text-gray-300" />
                   <span className="text-sm font-medium">Hết hạn vào: {formatDate(profile.premiumEndDate)}</span>

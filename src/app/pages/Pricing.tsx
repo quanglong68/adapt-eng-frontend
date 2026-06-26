@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
-import { Crown, Loader2, Check, ArrowLeft, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Crown, Loader2, Check, ArrowLeft, Zap, AlertTriangle } from "lucide-react";
 import { MOCK_PACKAGES, paymentService } from "../services/payment.service";
 
 export function Pricing() {
@@ -9,19 +9,57 @@ export function Pricing() {
   const [loadingPackageId, setLoadingPackageId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // States cho Modal cảnh báo cộng dồn VIP
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
+  const [warningText, setWarningText] = useState("");
+
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+
+  // Fix lỗi BFCache (Trắng màn hình khi ấn Back trên trình duyệt)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setLoadingPackageId(null);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   const handlePay = async (packageId: number) => {
     setLoadingPackageId(packageId);
     setError(null);
     try {
-      const { vnpayUrl } = await paymentService.createPaymentUrl({ packageId });
-      window.location.href = vnpayUrl;
+      // Hứng ĐẦY ĐỦ các trường từ Backend trả về
+      const { vnpayUrl, hasActiveVip, warningMessage } = await paymentService.createPaymentUrl({ packageId });
+
+      // Nếu có VIP và có câu cảnh báo -> Bật Modal
+      if (hasActiveVip && warningMessage) {
+        setWarningText(warningMessage);
+        setPendingPaymentUrl(vnpayUrl);
+        setShowWarningModal(true);
+        setLoadingPackageId(null);
+      } else {
+        // Nếu không có VIP -> Chuyển thẳng sang VNPAY
+        window.location.href = vnpayUrl;
+      }
     } catch (err) {
       console.error("Payment URL creation failed:", err);
       setError("Không thể tạo liên kết thanh toán. Vui lòng thử lại.");
       setLoadingPackageId(null);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+      // Ẩn modal sau khi chuyển trang
+      setTimeout(() => {
+        setShowWarningModal(false);
+        setPendingPaymentUrl(null);
+      }, 500);
     }
   };
 
@@ -32,7 +70,7 @@ export function Pricing() {
         <motion.button
           whileHover={{ scale: 1.05, background: "#F1F5F9" }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/dashboard")}
           className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 mr-4 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -77,7 +115,7 @@ export function Pricing() {
                 style={{
                   borderColor: isPopular ? "#4F46E5" : "#E5E7EB",
                   boxShadow: isPopular ? "0 20px 40px rgba(79,70,229,0.15)" : "0 4px 20px rgba(0,0,0,0.03)",
-                  transform: isPopular ? "scale(1.05)" : "scale(1)" // Gói phổ biến to hơn xíu
+                  transform: isPopular ? "scale(1.05)" : "scale(1)"
                 }}
               >
                 {isPopular && (
@@ -117,8 +155,8 @@ export function Pricing() {
                   disabled={loadingPackageId !== null}
                   onClick={() => handlePay(pkg.id)}
                   className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center transition-colors ${isPopular
-                      ? "text-white"
-                      : "text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
+                    ? "text-white"
+                    : "text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
                     }`}
                   style={{ background: isPopular ? "linear-gradient(135deg, #4F46E5, #7C3AED)" : "" }}
                 >
@@ -136,6 +174,54 @@ export function Pricing() {
           })}
         </div>
       </div>
+
+      {/* Modal Cảnh báo Nâng cấp (Hiển thị đè lên trên cùng) */}
+      <AnimatePresence>
+        {showWarningModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWarningModal(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
+            >
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <AlertTriangle className="w-8 h-8 text-amber-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-center text-slate-800 mb-3">Xác nhận gia hạn</h2>
+              <p className="text-slate-600 text-center mb-8 leading-relaxed">
+                {warningText}
+              </p>
+              <div className="flex gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowWarningModal(false)}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Hủy bỏ
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleConfirmPayment}
+                  className="flex-1 py-3.5 rounded-xl font-bold text-white shadow-lg shadow-amber-200 transition-colors"
+                  style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
+                >
+                  Đồng ý thanh toán
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
