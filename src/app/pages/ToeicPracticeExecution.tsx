@@ -6,6 +6,7 @@ import { SplitScreenLayout } from "../components/layouts";
 import { ToeicOptionButton, renderPassageContent } from "../components/shared";
 import { toeicService } from "../services/toeic.service";
 import { ToeicPassageResponse, SubmitToeicPracticeRequest } from "../types/toeic.type";
+import { WordCart } from "../components/vip/WordCart";
 
 export function ToeicPracticeExecution() {
   const navigate = useNavigate();
@@ -17,6 +18,41 @@ export function ToeicPracticeExecution() {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // State cho sự kiện bôi đen từ vựng
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionPos, setSelectionPos] = useState<{ x: number, y: number } | null>(null);
+
+  // Bắt sự kiện thả chuột và "dọn dẹp" đoạn text bôi đen
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    let text = selection?.toString().trim();
+
+    if (!text) {
+      setSelectedText("");
+      return;
+    }
+
+    // Tự động gọt bỏ dấu câu ở 2 đầu (VD: "apple," -> "apple")
+    text = text.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '');
+
+    // Lọc 1: Chỉ chấp nhận chữ, số, khoảng trắng, gạch nối, nháy đơn
+    const isValidCharacters = /^[a-zA-Z0-9\s\-']+$/.test(text);
+    // Lọc 2: Tối đa 3 từ
+    const wordCount = text.split(/\s+/).length;
+    // Lọc 3: Độ dài 2 - 30 ký tự
+    const isValidLength = text.length >= 2 && text.length <= 30;
+
+    if (isValidCharacters && isValidLength && wordCount <= 3) {
+      const range = selection?.getRangeAt(0).getBoundingClientRect();
+      if (range && range.width > 0) {
+        setSelectedText(text); // Truyền từ đã được làm sạch
+        setSelectionPos({ x: range.left + (range.width / 2) - 50, y: range.top });
+      }
+    } else {
+      setSelectedText(""); // Nếu kéo rác quá nhiều thì ẩn Tooltip luôn
+    }
+  };
 
   useEffect(() => {
     const fetchPractice = async () => {
@@ -114,79 +150,83 @@ export function ToeicPracticeExecution() {
   };
 
   return (
-    <SplitScreenLayout
-      theme="emerald"
-      title={
-        <>
-          Ôn tập <span className="text-emerald-600">Hàng ngày</span>
-        </>
-      }
-      progress={progress}
-      answeredCount={answeredCount}
-      totalQuestions={totalQuestions}
-      onHeaderSubmit={handleRequestSubmit}
-      isSubmitting={isSubmitting}
-      isPart5={isPart5}
-      partLabel={currentBlock.toeicPart.replace("_", " ")}
-      passageContent={renderPassageContent(currentBlock.passageContent || "", "emerald")}
-      questionsContent={
-        <div className="space-y-12">
-          {currentBlock.questions.map((q, idx) => (
-            <div key={q.questionId} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className="text-[15px] font-semibold text-slate-800 mb-5 flex gap-3 leading-relaxed">
-                <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-full text-xs">
-                  {idx + 1}
-                </span>
-                {q.content.replace("_____", "_______")}
-              </h3>
+    <div onMouseUp={handleMouseUp} className="w-full h-full relative">
+      <SplitScreenLayout
+        theme="emerald"
+        title={
+          <>
+            Ôn tập <span className="text-emerald-600">Hàng ngày</span>
+          </>
+        }
+        progress={progress}
+        answeredCount={answeredCount}
+        totalQuestions={totalQuestions}
+        onHeaderSubmit={handleRequestSubmit}
+        isSubmitting={isSubmitting}
+        isPart5={isPart5}
+        partLabel={currentBlock.toeicPart.replace("_", " ")}
+        passageContent={renderPassageContent(currentBlock.passageContent || "", "emerald")}
+        questionsContent={
+          <div className="space-y-12">
+            {currentBlock.questions.map((q, idx) => (
+              <div key={q.questionId} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h3 className="text-[15px] font-semibold text-slate-800 mb-5 flex gap-3 leading-relaxed">
+                  <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-full text-xs">
+                    {idx + 1}
+                  </span>
+                  {q.content.replace("_____", "_______")}
+                </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-10">
-                {q.options.map((opt, optIdx) => (
-                  <ToeicOptionButton
-                    key={optIdx}
-                    optionText={opt}
-                    index={optIdx}
-                    isSelected={answers[q.questionId] === opt}
-                    onSelect={() => handleSelectAnswer(q.questionId, opt)}
-                    theme="emerald"
-                  />
-                ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-10">
+                  {q.options.map((opt, optIdx) => (
+                    <ToeicOptionButton
+                      key={optIdx}
+                      optionText={opt}
+                      index={optIdx}
+                      isSelected={answers[q.questionId] === opt}
+                      onSelect={() => handleSelectAnswer(q.questionId, opt)}
+                      theme="emerald"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      }
-      currentBlockIndex={currentBlockIndex}
-      totalBlocks={blocks.length}
-      onPrevBlock={() => setCurrentBlockIndex((prev) => Math.max(0, prev - 1))}
-      onNextBlock={() => setCurrentBlockIndex((prev) => Math.min(blocks.length - 1, prev + 1))}
-      isLastBlock={currentBlockIndex === blocks.length - 1}
-      onComplete={handleRequestSubmit}
-      completeLabel="Hoàn thành"
-      submittingLabel="Đang xử lý..."
-      prevBlockLabel="Khối trước"
-      nextBlockLabel="Khối tiếp theo"
-      showExit={showExit}
-      onShowExit={() => setShowExit(true)}
-      onExitCancel={() => setShowExit(false)}
-      onExitConfirm={() => navigate("/dashboard")}
-      exitTitle="Dừng ôn tập?"
-      exitMessage="Tiến độ ôn tập hằng ngày sẽ không được lưu nếu bạn thoát bây giờ."
-      exitCancelLabel="Tiếp tục ôn"
-      exitConfirmLabel="Thoát luôn"
-      showSubmitConfirm={showSubmitConfirm}
-      onSubmitConfirmCancel={() => setShowSubmitConfirm(false)}
-      onSubmitConfirmConfirm={executeSubmit}
-      submitConfirmMessage={
-        <>
-          Bạn mới hoàn thành{" "}
-          <strong className="text-emerald-600">
-            {answeredCount}/{totalQuestions}
-          </strong>{" "}
-          câu hỏi ôn tập. Những câu bỏ trống sẽ bị tính là <strong>Sai</strong> và bị lặp lại vào ngày
-          mai. Nộp luôn chứ?
-        </>
-      }
-    />
+            ))}
+          </div>
+        }
+        currentBlockIndex={currentBlockIndex}
+        totalBlocks={blocks.length}
+        onPrevBlock={() => setCurrentBlockIndex((prev) => Math.max(0, prev - 1))}
+        onNextBlock={() => setCurrentBlockIndex((prev) => Math.min(blocks.length - 1, prev + 1))}
+        isLastBlock={currentBlockIndex === blocks.length - 1}
+        onComplete={handleRequestSubmit}
+        completeLabel="Hoàn thành"
+        submittingLabel="Đang xử lý..."
+        prevBlockLabel="Khối trước"
+        nextBlockLabel="Khối tiếp theo"
+        showExit={showExit}
+        onShowExit={() => setShowExit(true)}
+        onExitCancel={() => setShowExit(false)}
+        onExitConfirm={() => navigate("/dashboard")}
+        exitTitle="Dừng ôn tập?"
+        exitMessage="Tiến độ ôn tập hằng ngày sẽ không được lưu nếu bạn thoát bây giờ."
+        exitCancelLabel="Tiếp tục ôn"
+        exitConfirmLabel="Thoát luôn"
+        showSubmitConfirm={showSubmitConfirm}
+        onSubmitConfirmCancel={() => setShowSubmitConfirm(false)}
+        onSubmitConfirmConfirm={executeSubmit}
+        submitConfirmMessage={
+          <>
+            Bạn mới hoàn thành{" "}
+            <strong className="text-emerald-600">
+              {answeredCount}/{totalQuestions}
+            </strong>{" "}
+            câu hỏi ôn tập. Những câu bỏ trống sẽ bị tính là <strong>Sai</strong> và bị lặp lại vào ngày
+            mai. Nộp luôn chứ?
+          </>
+        }
+      />
+
+      <WordCart selectedText={selectedText} selectionPosition={selectionPos} />
+    </div>
   );
 }

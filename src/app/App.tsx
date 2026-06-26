@@ -19,12 +19,26 @@ import { ToeicPracticeReviewMistakes } from "./pages/ToeicPracticeReviewMistakes
 import { UserProfile } from "./pages/UserProfile";
 import { Pricing } from "./pages/Pricing";
 import { PaymentResult } from "./pages/PaymentResult";
+import { VipEntertainment } from "./pages/VipEntertainment";
+import { TransactionHistory } from "./components/vip/TransactionHistory";
+import { Toaster } from "react-hot-toast";
 
 
 export default function App() {
   return (
     <div style={{ fontFamily: "'Poppins', sans-serif", background: "#F9FAFB", minHeight: "100vh" }}>
       <BrowserRouter>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              borderRadius: '16px',
+              background: '#fff',
+              color: '#1E293B',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            },
+          }}
+        />
         <Routes>
           <Route path="/select-level" element={<LevelSelectTest />} />
           <Route path="/test/:level" element={<TestExecution />} />
@@ -49,6 +63,8 @@ export default function App() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/payment-result" element={<PaymentResult />} />
+          <Route path="/vip-entertainment" element={<VipEntertainment />} />
+          <Route path="/transaction-history" element={<TransactionHistory />} />
         </Routes>
       </BrowserRouter>
     </div>

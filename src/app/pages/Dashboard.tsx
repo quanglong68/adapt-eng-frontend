@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Bell, BookOpen, Brain, Target, TrendingUp, ChevronRight, Zap, Clock, Star, Play, Map, Loader2, LogOut, User } from "lucide-react";
+import { Flame, Bell, BookOpen, Brain, Target, ChevronRight, Zap, Star, Play, Map, Loader2, LogOut, User, Crown, Sparkles, CreditCard, History } from "lucide-react";
 import { dashboardService } from "../services/dashboard.service";
+import { userService } from "../services/user.service"; // Import thêm userService
 import { DashboardSummaryResponse } from "../types/dashboard.type";
+import { PremiumGuard } from "../components/shared/PremiumGuard";
 
 const skills = ["Từ vựng", "Ngữ pháp", "Đọc hiểu", "Cụm từ"];
 
@@ -14,15 +16,16 @@ export function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // State mới để lưu trạng thái VIP chuẩn xác 100% từ Database
+  const [isPremium, setIsPremium] = useState(false);
+
   const userFullName = localStorage.getItem('fullName') || "Học viên";
   const userEmail = localStorage.getItem('email') || "hocvien@email.com";
   const currentTrack = localStorage.getItem('learningTrack') || "GENERAL";
 
-  // 👇 --- CÁC STATE VÀ LOGIC MỚI CHO AVATAR DROPDOWN ---
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Tính năng: Bấm chuột ra ngoài vùng menu thì tự động đóng menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
@@ -33,12 +36,10 @@ export function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Xử lý đăng xuất
   const handleLogout = () => {
-    localStorage.clear(); // Xóa sạch token và data phiên đăng nhập
-    navigate("/"); // Trở về trang Login
+    localStorage.clear();
+    navigate("/");
   };
-  // 👆 ----------------------------------------------------
 
   const getInitials = (name: string) => {
     const parts = name.split(' ');
@@ -47,18 +48,28 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await dashboardService.getSummary();
-        setDashboardData(data);
+        // Gọi song song 2 API để lấy Dashboard và lấy Profile kiểm tra VIP
+        const [dashData, profileData] = await Promise.all([
+          dashboardService.getSummary(),
+          userService.getProfile()
+        ]);
+
+        setDashboardData(dashData);
+        setIsPremium(profileData.premium); // Gắn cờ VIP cực chuẩn
+
+        // Cập nhật lại localStorage nhỡ nó bị sai
+        localStorage.setItem('premium', profileData.premium ? 'true' : 'false');
+
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu Dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchDashboardData();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -116,9 +127,7 @@ export function Dashboard() {
             <Bell className="w-5 h-5" />
           </button>
 
-          {/* 👇 --- KHU VỰC AVATAR MỚI --- 👇 */}
           <div className="relative" ref={profileMenuRef}>
-            {/* Nút Avatar để bấm */}
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="w-9 h-9 rounded-full overflow-hidden transition-transform hover:scale-105 focus:outline-none"
@@ -129,50 +138,62 @@ export function Dashboard() {
               </div>
             </button>
 
-            {/* Khung Menu thả xuống */}
-            {isProfileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl py-2 z-50 overflow-hidden"
-                style={{ border: "1px solid #E5E7EB" }}
-              >
-                {/* Phần Header Menu (Hiển thị tên & email) */}
-                <div className="px-4 py-3 border-b" style={{ borderColor: "#F1F5F9" }}>
-                  <p className="text-sm font-bold text-gray-800 truncate">{userFullName}</p>
-                  <p className="text-xs text-gray-500 truncate mt-0.5">{userEmail}</p>
-                </div>
+            <AnimatePresence>
+              {isProfileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl py-2 z-50 overflow-hidden"
+                  style={{ border: "1px solid #E5E7EB" }}
+                >
+                  <div className="px-4 py-3 border-b" style={{ borderColor: "#F1F5F9" }}>
+                    <p className="text-sm font-bold text-gray-800 truncate">{userFullName}</p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{userEmail}</p>
+                  </div>
 
-                {/* Các nút bấm chức năng */}
-                <div className="p-1.5">
-                  <button
-                    onClick={() => navigate("/profile")}
-                    className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 flex items-center gap-3 transition-colors"
-                  >
-                    <User className="w-4 h-4 text-gray-500" />
-                    Hồ sơ cá nhân
-                  </button>
+                  <div className="p-1.5 space-y-1">
+                    <button
+                      onClick={() => navigate("/profile")}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 flex items-center gap-3 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-gray-500" />
+                      Hồ sơ cá nhân
+                    </button>
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 flex items-center gap-3 transition-colors mt-1"
-                  >
-                    <LogOut className="w-4 h-4 text-red-500" />
-                    Đăng xuất
-                  </button>
-                </div>
-              </motion.div>
-            )}
+                    <button
+                      onClick={() => navigate("/pricing")}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-xl hover:bg-amber-100 flex items-center gap-3 transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4 text-amber-600" />
+                      Nâng cấp / Gia hạn VIP
+                    </button>
+
+                    <button
+                      onClick={() => navigate("/transaction-history")}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 flex items-center gap-3 transition-colors"
+                    >
+                      <History className="w-4 h-4 text-gray-500" />
+                      Lịch sử giao dịch
+                    </button>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 flex items-center gap-3 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          {/* 👆 --- KẾT THÚC KHU VỰC AVATAR --- 👆 */}
-
         </div>
       </div>
 
       <div className="px-8 py-8 max-w-6xl mx-auto">
-        {/* Welcome */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="text-2xl font-bold" style={{ color: "#1E293B" }}>
             Chào buổi sáng, {userFullName}! 👋
@@ -186,7 +207,6 @@ export function Dashboard() {
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
 
-            {/* Daily Mission Data Thật */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               className="rounded-3xl p-7 relative overflow-hidden"
@@ -229,7 +249,6 @@ export function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Sinh đề luyện tập */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
               className="bg-white rounded-3xl p-6"
@@ -271,7 +290,6 @@ export function Dashboard() {
               </motion.button>
             </motion.div>
 
-            {/* Hoạt động gần đây */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
               className="bg-white rounded-3xl p-6"
@@ -307,11 +325,50 @@ export function Dashboard() {
                 )}
               </div>
             </motion.div>
+
+            {/* Vũ Trụ Giải Trí VIP */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+              className="rounded-3xl p-1 relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
+            >
+              <div className="bg-white rounded-[22px] p-6 h-full flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -mr-10 -mt-10 opacity-50 pointer-events-none" />
+                <div className="relative z-10 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                      <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>Vũ Trụ Giải Trí VIP</h3>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-amber-500 uppercase tracking-wide">Premium</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-5 max-w-md">
+                      Khám phá câu chuyện chữa lành và dự đoán vận mệnh hôm nay. Ôn lại các từ vựng đã lưu một cách thư giãn nhất!
+                    </p>
+
+                    {/* Bọc Khiên Bảo Vệ quanh nút bấm */}
+                    <PremiumGuard isPremium={isPremium}>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => navigate("/vip-entertainment")}
+                        className="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg flex items-center gap-2"
+                        style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
+                      >
+                        <Crown className="w-4 h-4" />
+                        Khám phá ngay
+                      </motion.button>
+                    </PremiumGuard>
+
+                  </div>
+                  <div className="hidden sm:flex w-24 h-24 rounded-full bg-amber-50 items-center justify-center">
+                    <Sparkles className="w-10 h-10 text-amber-400" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
-          {/* Right sidebar */}
           <div className="space-y-6">
-            {/* User stats */}
             <motion.div
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
               className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
@@ -341,7 +398,6 @@ export function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Quick links */}
             <motion.div
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
               className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
@@ -368,7 +424,6 @@ export function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Tip */}
             <motion.div
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}
               className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)", border: "1px solid #FED7AA" }}
