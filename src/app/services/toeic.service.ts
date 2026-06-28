@@ -6,7 +6,10 @@ import {
     SubmitToeicTestRequest, 
     ToeicTestSubmissionResponse,
     SubmitToeicPracticeRequest,
-    ToeicPracticeSubmissionResponse
+    ToeicPracticeSubmissionResponse,
+    DailyPracticeHistoryResponse,
+    SaveDraftRequest,
+    DailyPracticeSessionResponse
 } from '../types/toeic.type';
 
 export const toeicService = {
@@ -22,13 +25,22 @@ export const toeicService = {
     },
 
     // 2. Luồng Ôn tập Hàng ngày (Daily Practice)
-    getDailyPractice: async (): Promise<ToeicPassageResponse[]> => {
-        const response = await apiClient.get<ToeicPassageResponse[]>('/toeic/practice/daily');
+    getDailyPractice: async (): Promise<DailyPracticeSessionResponse> => {
+        const response = await apiClient.get<DailyPracticeSessionResponse>('/toeic/practice/daily');
         return response.data;
+    },
+
+    saveDraft: async (draftData: SaveDraftRequest): Promise<void> => {
+        await apiClient.put('/toeic/practice/save-draft', draftData);
     },
 
     submitDailyPractice: async (submissionData: SubmitToeicPracticeRequest): Promise<ToeicPracticeSubmissionResponse> => {
         const response = await apiClient.post<ToeicPracticeSubmissionResponse>('/toeic/practice/submit', submissionData);
+        return response.data;
+    },
+
+    getPracticeHistory: async (): Promise<DailyPracticeHistoryResponse[]> => {
+        const response = await apiClient.get<DailyPracticeHistoryResponse[]>('/toeic/practice/history');
         return response.data;
     }
 };

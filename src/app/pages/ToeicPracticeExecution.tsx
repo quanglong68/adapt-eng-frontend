@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Loader2, CheckCircle2, Crown, Coffee } from "lucide-react"; // Đã thêm Crown và Coffee
 import { useNavigate } from "react-router-dom";
 
 import { SplitScreenLayout } from "../components/layouts";
@@ -19,11 +19,15 @@ export function ToeicPracticeExecution() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State cho sự kiện bôi đen từ vựng
+  // States quản lý giới hạn
+  const [isVipLimit, setIsVipLimit] = useState(false);
+  const [isMaxLimit, setIsMaxLimit] = useState(false);
+
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [selectedText, setSelectedText] = useState("");
   const [selectionPos, setSelectionPos] = useState<{ x: number, y: number } | null>(null);
 
-  // Bắt sự kiện thả chuột và "dọn dẹp" đoạn text bôi đen
   const handleMouseUp = () => {
     const selection = window.getSelection();
     let text = selection?.toString().trim();
@@ -33,24 +37,19 @@ export function ToeicPracticeExecution() {
       return;
     }
 
-    // Tự động gọt bỏ dấu câu ở 2 đầu (VD: "apple," -> "apple")
     text = text.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '');
-
-    // Lọc 1: Chỉ chấp nhận chữ, số, khoảng trắng, gạch nối, nháy đơn
     const isValidCharacters = /^[a-zA-Z0-9\s\-']+$/.test(text);
-    // Lọc 2: Tối đa 3 từ
     const wordCount = text.split(/\s+/).length;
-    // Lọc 3: Độ dài 2 - 30 ký tự
     const isValidLength = text.length >= 2 && text.length <= 30;
 
     if (isValidCharacters && isValidLength && wordCount <= 3) {
       const range = selection?.getRangeAt(0).getBoundingClientRect();
       if (range && range.width > 0) {
-        setSelectedText(text); // Truyền từ đã được làm sạch
+        setSelectedText(text);
         setSelectionPos({ x: range.left + (range.width / 2) - 50, y: range.top });
       }
     } else {
-      setSelectedText(""); // Nếu kéo rác quá nhiều thì ẩn Tooltip luôn
+      setSelectedText("");
     }
   };
 
@@ -58,23 +57,117 @@ export function ToeicPracticeExecution() {
     const fetchPractice = async () => {
       try {
         const data = await toeicService.getDailyPractice();
-        setBlocks(data);
-      } catch (error) {
-        console.error("Lỗi lấy bài ôn tập TOEIC:", error);
-        alert("Lỗi khi tải bài ôn tập, vui lòng thử lại!");
+
+        setBlocks(data.testContent || []);
+
+        if (data.savedAnswers) {
+          const formattedAnswers: Record<number, string> = {};
+          Object.keys(data.savedAnswers).forEach(key => {
+            formattedAnswers[Number(key)] = data.savedAnswers[key as any];
+          });
+          setAnswers(formattedAnswers);
+        }
+      } catch (error: any) {
+        // Bắt lỗi từ Backend (Cần đảm bảo Backend config trả về message chuẩn)
+        const errorMessage = error.response?.data?.message || error.message || "";
+
+        // Quét chữ trong message lỗi
+        if (errorMessage.includes("REQUIRE_VIP")) {
+          setIsVipLimit(true);
+        } else if (errorMessage.includes("MAX_LIMIT_REACHED")) {
+          setIsMaxLimit(true);
+        } else {
+          console.error("Lỗi lấy bài ôn tập TOEIC:", error);
+          alert("Lỗi khi tải bài ôn tập, vui lòng thử lại!");
+          navigate("/dashboard");
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchPractice();
-  }, []);
+  }, [navigate]);
 
+  useEffect(() => {
+    if (Object.keys(answers).length === 0 || isLoading) return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = setTimeout(() => {
+      toeicService.saveDraft({ answers }).catch(err => console.error("Lỗi lưu nháp:", err));
+    }, 1000);
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [answers, isLoading]);
+
+  // HIỂN THỊ MÀN HÌNH LOADING
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
         <h2 className="text-xl font-bold text-slate-700">Đang chuẩn bị phiên ôn tập...</h2>
         <p className="text-slate-500 text-sm mt-2">Hệ thống đang tải dữ liệu Spaced Repetition</p>
+      </div>
+    );
+  }
+
+  // HIỂN THỊ MÀN HÌNH ĐÒI VIP
+  if (isVipLimit) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 font-['Poppins'] p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-lg text-center max-w-md w-full border border-slate-100">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5 relative">
+            <Crown className="w-8 h-8 text-amber-500" />
+            <div className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-500"></span>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Giới hạn luyện tập</h2>
+          <p className="text-slate-500 mb-6 text-sm leading-relaxed">
+            Bạn đã hoàn thành 1 phiên ôn tập miễn phí hôm nay. Nâng cấp <strong>Premium</strong> để xóa bỏ giới hạn, luyện tập không giới hạn và làm chủ tiếng Anh!
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate("/pricing")}
+              className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-amber-200 transition-all transform hover:-translate-y-0.5"
+            >
+              Nâng cấp VIP ngay
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full py-3 text-slate-500 font-semibold rounded-xl hover:bg-slate-50 transition"
+            >
+              Quay lại trang chủ
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // HIỂN THỊ MÀN HÌNH CHẶN QUOTA VIP (Bảo vệ não bộ)
+  if (isMaxLimit) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 font-['Poppins'] p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-lg text-center max-w-md w-full border border-slate-100">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <Coffee className="w-8 h-8 text-blue-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Não bộ cần nghỉ ngơi!</h2>
+          <p className="text-slate-500 mb-6 text-sm leading-relaxed">
+            Tuyệt vời! Bạn đã hoàn thành tối đa <strong>3 đề ôn tập</strong> trong hôm nay.
+            Theo nguyên tắc Spaced Repetition, nhồi nhét thêm sẽ không hiệu quả. Hãy thư giãn và quay lại vào ngày mai nhé!
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+          >
+            Về trang chủ nghỉ ngơi
+          </button>
+        </div>
       </div>
     );
   }
@@ -208,7 +301,7 @@ export function ToeicPracticeExecution() {
         onExitCancel={() => setShowExit(false)}
         onExitConfirm={() => navigate("/dashboard")}
         exitTitle="Dừng ôn tập?"
-        exitMessage="Tiến độ ôn tập hằng ngày sẽ không được lưu nếu bạn thoát bây giờ."
+        exitMessage="Tiến độ sẽ được lưu ngầm tự động. Lần sau vào bạn có thể làm tiếp!"
         exitCancelLabel="Tiếp tục ôn"
         exitConfirmLabel="Thoát luôn"
         showSubmitConfirm={showSubmitConfirm}
@@ -216,12 +309,11 @@ export function ToeicPracticeExecution() {
         onSubmitConfirmConfirm={executeSubmit}
         submitConfirmMessage={
           <>
-            Bạn mới hoàn thành{" "}
+            Bạn mới làm được{" "}
             <strong className="text-emerald-600">
               {answeredCount}/{totalQuestions}
             </strong>{" "}
-            câu hỏi ôn tập. Những câu bỏ trống sẽ bị tính là <strong>Sai</strong> và bị lặp lại vào ngày
-            mai. Nộp luôn chứ?
+            câu. Những câu bỏ trống sẽ bị tính là <strong>Sai</strong> và lặp lại vào ngày mai. Nộp luôn chứ?
           </>
         }
       />

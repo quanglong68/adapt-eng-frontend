@@ -58,3 +58,25 @@ export interface ToeicPracticeSubmissionResponse {
   correctAnswers: number;
   reviewList: ToeicQuestionReview[];
 }
+
+
+export interface DailyPracticeSessionResponse {
+  recordId: number;
+  status: string;
+  testContent: ToeicPassageResponse[];
+  savedAnswers: Record<number, string>; // Map chứa đáp án đang chọn dở
+}
+
+export interface SaveDraftRequest {
+  answers: Record<number, string>;
+}
+
+export interface DailyPracticeHistoryResponse {
+  recordId: number;
+  status: string;
+  testDate: string;
+  score: number;
+  totalQuestions: number;
+  reviewJson: string; // Chuỗi JSON chứa ToeicQuestionReview[]
+  questionsJson: string;
+}
