@@ -22,6 +22,7 @@ import { PaymentResult } from "./pages/PaymentResult";
 import { VipEntertainment } from "./pages/VipEntertainment";
 import { TransactionHistory } from "./components/vip/TransactionHistory";
 import { Toaster } from "react-hot-toast";
+import { PracticeHistory } from "./pages/PracticeHistory";
 
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="/toeic/practice" element={<ToeicPracticeExecution />} />
           <Route path="/toeic/practice-result" element={<ToeicPracticeResult />} />
           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
+          <Route path="/practice-history" element={<PracticeHistory />} />
 
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/pricing" element={<Pricing />} />
