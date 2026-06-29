@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, CheckCircle2, Eye } from "lucide-react";
+import { ChevronRight, CheckCircle2, Eye, AlertTriangle, Flame } from "lucide-react"; // 🚨 Đã thêm AlertTriangle và Flame
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -12,11 +12,17 @@ export function ToeicPracticeResult() {
     const location = useLocation();
     const fired = useRef(false);
 
-    const practiceResult = location.state?.dataResult as ToeicPracticeSubmissionResponse;
+    const practiceResult = location.state?.dataResult as ToeicPracticeSubmissionResponse & { validEffort: boolean; earnedXp: number };
     const originalBlocks = location.state?.originalBlocks;
 
+    // Lấy cờ hợp lệ và XP từ API trả về
+    const isValid = practiceResult?.validEffort ?? true;
+    const earnedXp = practiceResult?.earnedXp ?? 0;
+
     useEffect(() => {
-        if (!practiceResult || fired.current) return;
+        // 🚨 CHỈ BẮN PHÁO HOA NẾU BÀI LÀM HỢP LỆ (validEffort = true)
+        if (!practiceResult || fired.current || !isValid) return;
+
         fired.current = true;
         try {
             const end = Date.now() + 2000;
@@ -28,7 +34,7 @@ export function ToeicPracticeResult() {
             };
             frame();
         } catch (e) { }
-    }, [practiceResult]);
+    }, [practiceResult, isValid]);
 
     if (!practiceResult) {
         return (
@@ -47,10 +53,17 @@ export function ToeicPracticeResult() {
     return (
         <div className="min-h-screen py-12 px-8" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
             <div className="max-w-2xl mx-auto">
+                {/* 🚨 HEADER THAY ĐỔI THEO TRẠNG THÁI */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-                    <div className="text-5xl mb-4">🌱</div>
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: "#1E293B" }}>Hoàn thành phiên ôn tập!</h1>
-                    <p className="text-sm" style={{ color: "#64748B" }}>Hệ thống Spaced Repetition đã ghi nhận tiến độ của bạn</p>
+                    <div className="text-5xl mb-4">{isValid ? "🌱" : "⚠️"}</div>
+                    <h1 className="text-3xl font-bold mb-2" style={{ color: isValid ? "#1E293B" : "#991B1B" }}>
+                        {isValid ? "Hoàn thành phiên ôn tập!" : "Phiên ôn tập không hợp lệ!"}
+                    </h1>
+                    <p className="text-sm" style={{ color: "#64748B" }}>
+                        {isValid
+                            ? "Hệ thống Spaced Repetition đã ghi nhận tiến độ của bạn"
+                            : "Phát hiện hành vi bỏ trống đề. Bạn cần đạt tối thiểu 10% để được ghi nhận."}
+                    </p>
                 </motion.div>
 
                 <motion.div
@@ -60,12 +73,28 @@ export function ToeicPracticeResult() {
                     <div className="flex flex-col items-center justify-center gap-6">
                         <CircularProgress value={practiceResult.correctAnswers} max={practiceResult.totalQuestions} variant="toeic-practice" />
                         <div>
-                            <div className="font-bold text-lg mb-2" style={{ color: "#1E293B" }}>
+                            <div className="font-bold text-lg mb-3" style={{ color: "#1E293B" }}>
                                 Tỷ lệ chính xác: {accuracyPercentage.toFixed(1)}%
                             </div>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Đã cập nhật lịch ôn tập kế tiếp
-                            </div>
+
+                            {/* 🚨 THÔNG BÁO TÍNH ĐIỂM / PHẠT SPAM */}
+                            {isValid ? (
+                                <div className="flex flex-col gap-2 items-center">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> Đã cập nhật lịch ôn tập
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold bg-orange-100 text-orange-700">
+                                        <Flame className="w-4 h-4 text-orange-500" /> +{earnedXp} XP
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold flex items-start text-left gap-2 max-w-sm mx-auto">
+                                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <span>
+                                        Điểm của bạn dưới 10%. Hệ thống sẽ <strong>KHÔNG CỘNG XP</strong> và <strong>KHÔNG TÍNH STREAK</strong> cho hôm nay để chống spam!
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>

@@ -10,11 +10,12 @@ export function ToeicTestReviewMistakes() {
     const navigate = useNavigate();
 
     const testResult = location.state?.dataResult as ToeicTestSubmissionResponse;
-    // Hứng khối Block để render lại cả đoạn văn
     const originalBlocks = location.state?.originalBlocks as ToeicPassageResponse[];
+    // HỨNG LẠI CỜ TỪ TRANG RESULT ĐỂ LÁT TRẢ LẠI
+    const mode = location.state?.mode;
+
     const reviews = testResult?.reviewList || [];
 
-    // Chuyển mảng reviews thành Object (Map) để dễ tra cứu nhanh: { questionId: reviewItem }
     const reviewMap = Object.fromEntries(reviews.map(r => [r.questionId, r]));
 
     if (!testResult || !originalBlocks) {
@@ -28,24 +29,22 @@ export function ToeicTestReviewMistakes() {
         );
     }
 
-    // Hàm tô đậm chỗ đục lỗ cho Part 6 — dùng shared utility
     const renderPassage = (text: string) => renderPassageContent(text, "indigo");
-
     let globalQuestionNumber = 1;
 
     return (
         <div className="min-h-screen py-10 px-4 md:px-8" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
             <div className="max-w-4xl mx-auto">
 
-                {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-2xl font-black text-slate-800 tracking-tight">Review Chi Tiết Đề Thi TOEIC</h1>
                         <p className="text-slate-500 text-sm mt-1 font-medium">Bạn đã đúng {testResult.correctAnswers}/{testResult.totalQuestions} câu hỏi</p>
                     </div>
+                    {/* NÚT THOÁT GÓC TRÊN */}
                     <button
                         onClick={() => navigate("/toeic/test-result", {
-                            state: { dataResult: testResult, originalBlocks: originalBlocks }
+                            state: { dataResult: testResult, originalBlocks: originalBlocks, mode: mode }
                         })}
                         className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 hover:bg-slate-50 transition"
                     >
@@ -53,7 +52,6 @@ export function ToeicTestReviewMistakes() {
                     </button>
                 </motion.div>
 
-                {/* Render theo từng Block (Từng đoạn văn) */}
                 <div className="space-y-10">
                     {originalBlocks.map((block, blockIdx) => {
                         const isPart5 = block.toeicPart === "PART_5";
@@ -64,7 +62,6 @@ export function ToeicTestReviewMistakes() {
                                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: blockIdx * 0.1 }}
                                 className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
                             >
-                                {/* ĐOẠN VĂN (Nếu không phải Part 5) */}
                                 {!isPart5 && (
                                     <div className="p-6 md:p-8 border-b border-slate-200 bg-slate-50">
                                         <div className="flex items-center gap-2 mb-4">
@@ -77,7 +74,6 @@ export function ToeicTestReviewMistakes() {
                                     </div>
                                 )}
 
-                                {/* DANH SÁCH CÂU HỎI THUỘC ĐOẠN VĂN ĐÓ */}
                                 <div className="p-6 md:p-8 space-y-12">
                                     {isPart5 && (
                                         <div className="font-bold text-sm text-indigo-700 mb-6 pb-4 border-b border-slate-100">
@@ -89,11 +85,10 @@ export function ToeicTestReviewMistakes() {
                                         const item = reviewMap[q.questionId];
                                         const currentQNum = globalQuestionNumber++;
 
-                                        if (!item) return null; // Safety check
+                                        if (!item) return null;
 
                                         return (
                                             <div key={q.questionId} className="relative">
-                                                {/* Icon đúng/sai */}
                                                 <div className="absolute -left-2 top-0 md:-left-4">
                                                     {item.correct ? (
                                                         <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
@@ -120,7 +115,6 @@ export function ToeicTestReviewMistakes() {
                                                         {q.content.replace("_____", "_______")}
                                                     </h3>
 
-                                                    {/* Options Grid */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
                                                         {q.options.map((opt, optIdx) => {
                                                             const isUserChoice = opt === item.userSelectedAnswer;
@@ -152,14 +146,12 @@ export function ToeicTestReviewMistakes() {
                                                         })}
                                                     </div>
 
-                                                    {/* Thông báo nếu bỏ trống */}
                                                     {item.userSelectedAnswer === "" && (
                                                         <div className="text-sm font-semibold text-amber-600 mb-3 bg-amber-50 inline-block px-3 py-1 rounded-md border border-amber-200">
                                                             ⚠️ Bạn đã bỏ trống câu này.
                                                         </div>
                                                     )}
 
-                                                    {/* AI Explanation Box */}
                                                     <div className="rounded-2xl p-4 flex flex-col gap-2" style={{ background: "#EEF2FF", border: "1px dashed #C7D2FE" }}>
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" />
@@ -179,13 +171,13 @@ export function ToeicTestReviewMistakes() {
                     })}
                 </div>
 
-                {/* Nút quay lại Bottom */}
+                {/* NÚT QUAY LẠI Ở CUỐI TRANG */}
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="text-center mt-10">
                     <motion.button
                         whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/toeic/test-result", {
-                            state: { dataResult: testResult, originalBlocks: originalBlocks }
+                            state: { dataResult: testResult, originalBlocks: originalBlocks, mode: mode }
                         })}
                         className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-white font-semibold"
                         style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", boxShadow: "0 6px 20px rgba(79,70,229,0.3)" }}

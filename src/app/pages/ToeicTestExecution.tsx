@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"; // THÊM useSearchParams
 
 import { SplitScreenLayout } from "../components/layouts";
 import { ToeicOptionButton, renderPassageContent } from "../components/shared";
@@ -11,6 +11,10 @@ import { ToeicPassageResponse, SubmitToeicTestRequest } from "../types/toeic.typ
 export function ToeicTestExecution() {
   const { level } = useParams<{ level: Level }>();
   const navigate = useNavigate();
+
+  // ĐỌC CHẾ ĐỘ THI TỪ URL
+  const [searchParams] = useSearchParams();
+  const isLevelUpMode = searchParams.get("mode") === "level-up";
 
   const [blocks, setBlocks] = useState<ToeicPassageResponse[]>([]);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
@@ -82,10 +86,18 @@ export function ToeicTestExecution() {
         answers: formattedAnswers,
       };
 
-      const result = await toeicService.submitTest(submitData);
+      // RẼ NHÁNH GỌI API DỰA VÀO MODE
+      const result = isLevelUpMode
+        ? await toeicService.submitLevelUpTest(submitData)
+        : await toeicService.submitTest(submitData);
 
+      // Ném dữ liệu và cờ mode sang trang Result
       navigate("/toeic/test-result", {
-        state: { dataResult: result, originalBlocks: blocks },
+        state: {
+          dataResult: result,
+          originalBlocks: blocks,
+          mode: isLevelUpMode ? "level-up" : "normal"
+        },
       });
     } catch (error) {
       console.error(error);
@@ -99,7 +111,7 @@ export function ToeicTestExecution() {
       theme="indigo"
       title={
         <>
-          Bài Test <span className="text-indigo-600">TOEIC {level}</span>
+          {isLevelUpMode ? "Bài thi Thăng cấp" : "Bài Test đánh giá"} <span className="text-indigo-600">TOEIC {level}</span>
         </>
       }
       progress={progress}
@@ -150,9 +162,9 @@ export function ToeicTestExecution() {
       showExit={showExit}
       onShowExit={() => setShowExit(true)}
       onExitCancel={() => setShowExit(false)}
-      onExitConfirm={() => navigate("/select-level")}
+      onExitConfirm={() => navigate(isLevelUpMode ? "/dashboard" : "/select-level")}
       exitTitle="Thoát bài thi?"
-      exitMessage="Bài làm của bạn sẽ không được lưu lại. Bạn có chắc chắn muốn quay về màn hình chọn độ khó?"
+      exitMessage="Bài làm của bạn sẽ không được lưu lại. Bạn có chắc chắn muốn thoát?"
       exitCancelLabel="Tiếp tục thi"
       exitConfirmLabel="Thoát luôn"
       showSubmitConfirm={showSubmitConfirm}

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { Flame, Bell, BookOpen, Brain, Target, ChevronRight, Zap, Star, Play, Map, Loader2, LogOut, User, Crown, Sparkles, CreditCard, History } from "lucide-react";
 import { dashboardService } from "../services/dashboard.service";
-import { userService } from "../services/user.service"; // Import thêm userService
+import { userService } from "../services/user.service";
 import { DashboardSummaryResponse } from "../types/dashboard.type";
 import { PremiumGuard } from "../components/shared/PremiumGuard";
 
@@ -16,7 +16,6 @@ export function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // State mới để lưu trạng thái VIP chuẩn xác 100% từ Database
   const [isPremium, setIsPremium] = useState(false);
 
   const userFullName = localStorage.getItem('fullName') || "Học viên";
@@ -51,17 +50,21 @@ export function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Gọi song song 2 API để lấy Dashboard và lấy Profile kiểm tra VIP
         const [dashData, profileData] = await Promise.all([
           dashboardService.getSummary(),
           userService.getProfile()
         ]);
 
-        setDashboardData(dashData);
-        setIsPremium(profileData.premium); // Gắn cờ VIP cực chuẩn
+        if (!dashData.currentLevel) {
+          window.dispatchEvent(new CustomEvent("REQUIRE_PLACEMENT_TEST"));
+          return new Promise(() => { });
+        }
 
-        // Cập nhật lại localStorage nhỡ nó bị sai
+        setDashboardData(dashData);
+        setIsPremium(profileData.premium);
+
         localStorage.setItem('premium', profileData.premium ? 'true' : 'false');
+        localStorage.setItem('currentLevel', dashData.currentLevel);
 
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu Dashboard:", error);
@@ -70,7 +73,7 @@ export function Dashboard() {
       }
     };
     fetchData();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -333,6 +336,82 @@ export function Dashboard() {
               </div>
             </motion.div>
 
+            {/* ========================================================= */}
+            {/* 🚀 KHỐI GAMIFICATION: HÀNH TRÌNH THĂNG CẤP BOSS */}
+            {/* ========================================================= */}
+            {dashboardData.levelUpProgress && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                className="bg-white rounded-3xl p-6 relative overflow-hidden"
+                style={{ border: "2px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}
+              >
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-60 pointer-events-none" />
+
+                <div className="relative z-10">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                      <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>
+                        Hành trình thăng cấp <span className="text-indigo-600 font-black">{dashboardData.levelUpProgress.targetLevel}</span> 👑
+                      </h3>
+                      <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hoàn thành các chỉ tiêu để mở khóa bài thi Thăng Cấp.</p>
+                    </div>
+
+                    <button
+                      onClick={() => navigate(`/toeic/test/${dashboardData.levelUpProgress?.targetLevel}?mode=level-up`)}
+                      disabled={!dashboardData.levelUpProgress.eligibleForBoss}
+                      className="px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50 shrink-0"
+                      style={{
+                        background: dashboardData.levelUpProgress.eligibleForBoss
+                          ? "linear-gradient(135deg, #10B981, #059669)"
+                          : "#F1F5F9",
+                        color: dashboardData.levelUpProgress.eligibleForBoss ? "#fff" : "#94A3B8",
+                        boxShadow: dashboardData.levelUpProgress.eligibleForBoss ? "0 4px 15px rgba(16, 185, 129, 0.4)" : "none",
+                        cursor: dashboardData.levelUpProgress.eligibleForBoss ? "pointer" : "not-allowed"
+                      }}
+                    >
+                      {dashboardData.levelUpProgress.cooldownActive
+                        ? `Khóa (Còn ${dashboardData.levelUpProgress.daysLeftToRetry} ngày)`
+                        : "Thi Thăng Cấp"
+                      }
+                    </button>
+                  </div>
+
+                  <div className="space-y-5">
+                    {/* Thanh XP */}
+                    <div>
+                      <div className="flex justify-between text-sm font-semibold mb-2">
+                        <span style={{ color: "#475569" }}>🔥 Tích lũy giờ học (XP)</span>
+                        <span style={{ color: "#F59E0B" }}>
+                          {dashboardData.levelUpProgress.currentTotalXp.toLocaleString()} / {dashboardData.levelUpProgress.requiredTotalXp.toLocaleString()} XP
+                        </span>
+                      </div>
+                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full transition-all duration-1000"
+                          style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.currentTotalXp / dashboardData.levelUpProgress.requiredTotalXp) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Thanh Phong độ */}
+                    <div>
+                      <div className="flex justify-between text-sm font-semibold mb-2">
+                        <span style={{ color: "#475569" }}>🎯 Phong độ (7 ngày qua)</span>
+                        <span style={{ color: "#3B82F6" }}>
+                          {dashboardData.levelUpProgress.current7DayAccuracy}% / {dashboardData.levelUpProgress.required7DayAccuracy}%
+                        </span>
+                      </div>
+                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                          style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.current7DayAccuracy / dashboardData.levelUpProgress.required7DayAccuracy) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Vũ Trụ Giải Trí VIP */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
@@ -352,7 +431,6 @@ export function Dashboard() {
                       Khám phá câu chuyện chữa lành và dự đoán vận mệnh hôm nay. Ôn lại các từ vựng đã lưu một cách thư giãn nhất!
                     </p>
 
-                    {/* Bọc Khiên Bảo Vệ quanh nút bấm */}
                     <PremiumGuard isPremium={isPremium}>
                       <motion.button
                         whileHover={{ scale: 1.03 }}

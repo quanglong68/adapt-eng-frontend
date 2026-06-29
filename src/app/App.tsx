@@ -23,7 +23,7 @@ import { VipEntertainment } from "./pages/VipEntertainment";
 import { TransactionHistory } from "./components/vip/TransactionHistory";
 import { Toaster } from "react-hot-toast";
 import { PracticeHistory } from "./pages/PracticeHistory";
-
+import { LevelGuardModal } from "./components/shared/LevelGuardModal";
 
 export default function App() {
   return (
@@ -40,6 +40,7 @@ export default function App() {
             },
           }}
         />
+        <LevelGuardModal />
         <Routes>
           <Route path="/select-level" element={<LevelSelectTest />} />
           <Route path="/test/:level" element={<TestExecution />} />
@@ -61,6 +62,7 @@ export default function App() {
           <Route path="/toeic/practice-result" element={<ToeicPracticeResult />} />
           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
           <Route path="/practice-history" element={<PracticeHistory />} />
+          
 
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/pricing" element={<Pricing />} />
