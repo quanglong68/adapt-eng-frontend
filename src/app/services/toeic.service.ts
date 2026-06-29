@@ -42,5 +42,9 @@ export const toeicService = {
     getPracticeHistory: async (): Promise<DailyPracticeHistoryResponse[]> => {
         const response = await apiClient.get<DailyPracticeHistoryResponse[]>('/toeic/practice/history');
         return response.data;
-    }
+    },
+    submitLevelUpTest: async (submissionData: SubmitToeicTestRequest): Promise<ToeicTestSubmissionResponse> => {
+        const response = await apiClient.post<ToeicTestSubmissionResponse>('/toeic/test/level-up/submit', submissionData);
+        return response.data;
+    },
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye } from "lucide-react";
+import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye, Home } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -17,23 +17,29 @@ export function ToeicTestResult() {
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
     const testResult = location.state?.dataResult as ToeicTestSubmissionResponse;
-    // SỬA: Lấy toàn bộ originalBlocks
     const originalBlocks = location.state?.originalBlocks;
+
+    // HỨNG BIẾN CHẾ ĐỘ THI TỪ TRANG LÀM BÀI
+    const isLevelUpMode = location.state?.mode === "level-up";
 
     useEffect(() => {
         if (!testResult) {
             navigate("/");
             return;
         }
-        const duration = 3 * 1000;
-        const end = Date.now() + duration;
-        const frame = () => {
-            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ["#4F46E5", "#7C3AED", "#10B981"] });
-            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ["#4F46E5", "#7C3AED", "#10B981"] });
-            if (Date.now() < end) requestAnimationFrame(frame);
-        };
-        frame();
-    }, [testResult, navigate]);
+
+        // Nếu là Thăng cấp thành công hoặc Đánh giá năng lực đỗ -> Bắn pháo hoa
+        if (testResult.passedThreshold || !isLevelUpMode) {
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+            const frame = () => {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ["#4F46E5", "#7C3AED", "#10B981"] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ["#4F46E5", "#7C3AED", "#10B981"] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            };
+            frame();
+        }
+    }, [testResult, navigate, isLevelUpMode]);
 
     if (!testResult) return null;
 
@@ -60,9 +66,15 @@ export function ToeicTestResult() {
                         <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} variant="toeic-test" />
                     </motion.div>
 
-                    <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">Đánh giá Năng lực TOEIC</h2>
+                    <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">
+                        {isLevelUpMode ? "Kết Quả Thăng Cấp" : "Đánh giá Năng lực TOEIC"}
+                    </h2>
+
+                    {/* KHÔNG DÙNG systemMessage NỮA, TỰ XỬ LÝ CHỮ Ở ĐÂY */}
                     <p className="text-slate-500 text-base mb-8 leading-relaxed px-4">
-                        Độ chính xác: <strong style={{ color: "#4F46E5" }}>{testResult.scorePercentage.toFixed(1)}%</strong>. {testResult.systemMessage}
+                        Độ chính xác: <strong style={{ color: "#4F46E5" }}>{testResult.scorePercentage.toFixed(1)}%</strong>.
+                        {isLevelUpMode && testResult.passedThreshold && " Quá xuất sắc! Xin chúc mừng bạn."}
+                        {isLevelUpMode && !testResult.passedThreshold && " Đừng nản lòng, hãy cố gắng ở lần sau nhé."}
                     </p>
 
                     <div className="p-5 rounded-2xl mb-8 flex items-start gap-4 text-left" style={{ background: testResult.passedThreshold ? "#EEF2FF" : "#FEF2F2", border: `1px solid ${testResult.passedThreshold ? "#C7D2FE" : "#FECACA"}` }}>
@@ -71,13 +83,21 @@ export function ToeicTestResult() {
                         </div>
                         <div>
                             <h4 className="font-bold text-slate-800 mb-1">
-                                {testResult.passedThreshold ? "Hoàn toàn phù hợp!" : "Cần củng cố thêm"}
+                                {isLevelUpMode
+                                    ? (testResult.passedThreshold ? "🎉 Thăng cấp thành công!" : "⚠️ Chưa đạt yêu cầu")
+                                    : (testResult.passedThreshold ? "Hoàn toàn phù hợp!" : "Cần củng cố thêm")
+                                }
                             </h4>
                             <p className="text-sm" style={{ color: testResult.passedThreshold ? "#4338CA" : "#991B1B" }}>
-                                AI khuyên bạn nên bắt đầu lộ trình học TOEIC ở mức: <br />
-                                <strong className="text-base mt-1 block">
-                                    {getLevelDisplay(testResult.recommendedLevel, "TOEIC")}
-                                </strong>
+                                {isLevelUpMode
+                                    ? (testResult.passedThreshold
+                                        ? `Tuyệt vời! Trình độ của bạn đã được nâng lên mức ${testResult.testedLevel}.`
+                                        : `Bạn chưa đủ điểm để thăng cấp lên ${testResult.testedLevel}. Hãy ôn tập thêm và thử lại nhé.`)
+                                    : <>AI khuyên bạn nên bắt đầu lộ trình học TOEIC ở mức: <br />
+                                        <strong className="text-base mt-1 block">
+                                            {testResult.recommendedLevel ? getLevelDisplay(testResult.recommendedLevel, "TOEIC") : ""}
+                                        </strong></>
+                                }
                             </p>
                         </div>
                     </div>
@@ -85,7 +105,8 @@ export function ToeicTestResult() {
                     <motion.button
                         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/toeic/test-review-mistakes", {
-                            state: { dataResult: testResult, originalBlocks: originalBlocks } // Truyền đúng block
+                            // NHỚ TRUYỀN CỜ MODE ĐI TIẾP ĐỂ KHÔNG BỊ MẤT STATE
+                            state: { dataResult: testResult, originalBlocks: originalBlocks, mode: isLevelUpMode ? "level-up" : "normal" }
                         })}
                         className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 mb-4 transition-all"
                         style={{ background: "#F1F5F9", color: "#475569" }}
@@ -94,31 +115,50 @@ export function ToeicTestResult() {
                         Xem lại đáp án chi tiết
                     </motion.button>
 
-                    <motion.button
-                        whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSetLevel(testResult.recommendedLevel)}
-                        disabled={isSubmitting}
-                        className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-4 transition-all"
-                        style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", opacity: isSubmitting ? 0.7 : 1 }}
-                    >
-                        <Bot className="w-5 h-5" />
-                        Đồng ý học mức {testResult.recommendedLevel}
-                        <ChevronRight className="w-5 h-5" />
-                    </motion.button>
-
-                    {!testResult.passedThreshold && (
+                    {/* NẾU LÀ ĐÁNH BOSS, CHỈ HIỆN 1 NÚT VỀ DASHBOARD */}
+                    {isLevelUpMode ? (
                         <motion.button
-                            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                            onClick={() => handleSetLevel(testResult.testedLevel)}
-                            disabled={isSubmitting}
-                            className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-                            style={{ background: "transparent", border: "2px solid #E5E7EB", color: "#64748B", opacity: isSubmitting ? 0.7 : 1 }}
+                            whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                                // Cập nhật level mới vào cache máy tính nếu pass
+                                if (testResult.passedThreshold) localStorage.setItem('currentLevel', testResult.testedLevel);
+                                navigate("/dashboard");
+                            }}
+                            className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-4 transition-all"
+                            style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}
                         >
-                            <BarChart2 className="w-4 h-4" />
-                            Không, tôi vẫn muốn học mức {testResult.testedLevel}
+                            <Home className="w-5 h-5" />
+                            Trở về Dashboard
                         </motion.button>
-                    )}
+                    ) : (
+                        // NẾU LÀ TEST THƯỜNG, HIỆN NÚT ĐỒNG Ý HỌC
+                        <>
+                            <motion.button
+                                whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
+                                onClick={() => handleSetLevel(testResult.recommendedLevel!)}
+                                disabled={isSubmitting}
+                                className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-4 transition-all"
+                                style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", opacity: isSubmitting ? 0.7 : 1 }}
+                            >
+                                <Bot className="w-5 h-5" />
+                                Đồng ý học mức {testResult.recommendedLevel}
+                                <ChevronRight className="w-5 h-5" />
+                            </motion.button>
 
+                            {!testResult.passedThreshold && (
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleSetLevel(testResult.testedLevel)}
+                                    disabled={isSubmitting}
+                                    className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                                    style={{ background: "transparent", border: "2px solid #E5E7EB", color: "#64748B", opacity: isSubmitting ? 0.7 : 1 }}
+                                >
+                                    <BarChart2 className="w-4 h-4" />
+                                    Không, tôi vẫn muốn học mức {testResult.testedLevel}
+                                </motion.button>
+                            )}
+                        </>
+                    )}
                 </motion.div>
             </div>
 
