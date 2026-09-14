@@ -25,6 +25,8 @@ import { Toaster } from "react-hot-toast";
 import { PracticeHistory } from "./pages/PracticeHistory";
 import { LevelGuardModal } from "./components/shared/LevelGuardModal";
 
+import { DeepDiveTestPage } from "./pages/DeepDiveTestPage";
+
 export default function App() {
   return (
     <div style={{ fontFamily: "'Poppins', sans-serif", background: "#F9FAFB", minHeight: "100vh" }}>
@@ -58,11 +60,15 @@ export default function App() {
           <Route path="/toeic/test/:level" element={<ToeicTestExecution />} />
           <Route path="/toeic/test-result" element={<ToeicTestResult />} />
           <Route path="/toeic/test-review-mistakes" element={<ToeicTestReviewMistakes />} />
+
           <Route path="/toeic/practice" element={<ToeicPracticeExecution />} />
           <Route path="/toeic/practice-result" element={<ToeicPracticeResult />} />
           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
+
+          {/* Route làm bài AI Deep Dive */}
+          <Route path="/toeic/test/deep-dive/:sessionId" element={<DeepDiveTestPage />} />
+
           <Route path="/practice-history" element={<PracticeHistory />} />
-          
 
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/pricing" element={<Pricing />} />
