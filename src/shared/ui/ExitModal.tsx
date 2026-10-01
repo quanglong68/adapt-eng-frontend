@@ -61,41 +61,36 @@ export function ExitModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(6px)" }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
         >
           <motion.div
             initial={{ scale: 0.88, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.88, opacity: 0 }}
             transition={{ type: "spring", damping: 18 }}
-            className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 text-center"
-            style={{ boxShadow: "0 32px 80px rgba(0,0,0,0.2)" }}
+            className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl"
           >
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "#FEF2F2" }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50"
             >
-              <AlertCircle className="w-7 h-7" style={{ color: "#EF4444" }} />
+              <AlertCircle className="w-7 h-7 text-red-500" />
             </div>
-            <h3 className="font-bold text-lg mb-2" style={{ color: "#1E293B" }}>
+            <h3 className="font-bold text-lg mb-2 text-slate-800">
               {title}
             </h3>
-            <p className="text-sm mb-6" style={{ color: "#64748B" }}>
+            <p className="text-sm mb-6 text-slate-500">
               {message}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 py-3 rounded-xl text-sm font-semibold"
-                style={{ background: "#F1F5F9", color: "#64748B" }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
               >
                 {cancelLabel}
               </button>
               <button
                 onClick={onConfirm}
-                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "#EF4444" }}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition shadow-lg shadow-red-200"
               >
                 {confirmLabel}
               </button>

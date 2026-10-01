@@ -100,7 +100,7 @@ export function SplitScreenLayout({
   const themeClasses = THEME_CLASSES[theme];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F8FAFC" }}>
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-4">
           <button
@@ -122,7 +122,7 @@ export function SplitScreenLayout({
         <button
           onClick={onHeaderSubmit}
           disabled={isSubmitting}
-          className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2"
+          className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-full transition-all shadow-sm flex items-center gap-2"
         >
           {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Nộp bài
@@ -133,8 +133,7 @@ export function SplitScreenLayout({
         <div className="max-w-7xl mx-auto w-full h-full bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col lg:flex-row">
           {!isPart5 && (
             <div
-              className="lg:w-1/2 h-1/3 lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 p-6 lg:p-10 overflow-y-auto"
-              style={{ background: "#FDFDFD" }}
+              className="lg:w-1/2 h-1/3 lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 bg-slate-50/50 p-6 lg:p-10 overflow-y-auto"
             >
               <div
                 className={`inline-flex items-center gap-2 px-3 py-1 font-bold text-xs rounded-lg mb-6 ${themeClasses.partBadge}`}
@@ -166,7 +165,7 @@ export function SplitScreenLayout({
         <button
           onClick={onPrevBlock}
           disabled={currentBlockIndex === 0}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-slate-500 hover:bg-slate-100/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <ChevronLeft className="w-5 h-5" />
           {prevBlockLabel}
@@ -180,7 +179,7 @@ export function SplitScreenLayout({
           <button
             onClick={onComplete}
             disabled={isSubmitting}
-            className={`flex items-center gap-2 px-8 py-3 text-white rounded-xl font-bold shadow-lg transition-all ${themeClasses.completeBtn}`}
+            className={`flex items-center gap-2 px-8 py-3 text-white rounded-full font-bold shadow-lg transition-all ${themeClasses.completeBtn}`}
           >
             {isSubmitting ? submittingLabel : completeLabel}
             <CheckCircle2 className="w-5 h-5" />
@@ -188,7 +187,7 @@ export function SplitScreenLayout({
         ) : (
           <button
             onClick={onNextBlock}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-semibold transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-full font-semibold transition-all"
           >
             {nextBlockLabel}
             <ChevronRight className="w-5 h-5" />

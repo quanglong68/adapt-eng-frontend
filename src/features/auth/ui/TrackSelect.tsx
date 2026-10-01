@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { BookOpen, Target, Globe, ArrowRight } from "lucide-react";
+import { BookOpen, Target, Globe, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LearningTrack } from "../../../shared/types/common.type";
 import { userService } from "../../../entities/user/user.service";
@@ -11,9 +11,9 @@ export function TrackSelect() {
     const navigate = useNavigate();
 
     const tracks = [
-        { id: "GENERAL" as LearningTrack, name: "Tiếng Anh Tổng Quát", desc: "Luyện ngữ pháp, từ vựng và giao tiếp hàng ngày.", icon: Globe, color: "#10B981", bg: "#D1FAE5" },
-        { id: "TOEIC" as LearningTrack, name: "Luyện thi TOEIC", desc: "Tập trung Part 5, 6, 7. Xóa mù chữ chốn công sở.", icon: Target, color: "#4F46E5", bg: "#EEF2FF" },
-        { id: "IELTS" as LearningTrack, name: "Luyện thi IELTS", desc: "Học thuật chuyên sâu. Chuẩn bị cho du học, định cư.", icon: BookOpen, color: "#F97316", bg: "#FFF7ED" },
+        { id: "GENERAL" as LearningTrack, name: "Tiếng Anh Tổng Quát", desc: "Luyện ngữ pháp, từ vựng và giao tiếp hàng ngày.", icon: Globe },
+        { id: "TOEIC" as LearningTrack, name: "Luyện thi TOEIC", desc: "Tập trung Part 5, 6, 7. Xóa mù chữ chốn công sở.", icon: Target },
+        { id: "IELTS" as LearningTrack, name: "Luyện thi IELTS", desc: "Học thuật chuyên sâu. Chuẩn bị cho du học, định cư.", icon: BookOpen },
     ];
 
     const handleContinue = async () => {
@@ -38,60 +38,65 @@ export function TrackSelect() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center py-12 px-8" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl w-full">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 py-12 px-6">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-3xl">
 
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold mb-4" style={{ color: "#1E293B" }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.05 }}
+                    className="text-center mb-10"
+                >
+                    <h1 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                         Mục tiêu học tập của bạn là gì?
                     </h1>
-                    <p className="text-base" style={{ color: "#64748B" }}>
+                    <p className="text-base text-slate-500">
                         AI của chúng tôi sẽ thiết kế lộ trình riêng biệt dựa trên lựa chọn này.
                     </p>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    {tracks.map((track) => {
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                    {tracks.map((track, i) => {
                         const isSelected = selected === track.id;
                         return (
                             <motion.div
                                 key={track.id}
-                                whileHover={{ y: -6 }}
+                                initial={{ opacity: 0, y: 24 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelected(track.id)}
-                                className="relative p-6 rounded-2xl cursor-pointer transition-all"
-                                style={{
-                                    background: isSelected ? track.bg : "#fff",
-                                    border: `2px solid ${isSelected ? track.color : "#E5E7EB"}`,
-                                    boxShadow: isSelected ? `0 8px 32px ${track.color}30` : "0 2px 12px rgba(0,0,0,0.05)",
-                                }}
+                                className={`relative cursor-pointer rounded-2xl border-2 bg-white p-6 transition-all duration-300 hover:scale-[1.02] ${isSelected ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-600/10" : "border-slate-200 hover:border-indigo-300"}`}
                             >
-                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: isSelected ? track.color : track.bg }}>
-                                    <track.icon className="w-6 h-6" style={{ color: isSelected ? "#fff" : track.color }} />
+                                {isSelected && (
+                                    <CheckCircle2 className="absolute right-4 top-4 h-5 w-5 text-indigo-600" />
+                                )}
+                                <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 ${isSelected ? "bg-indigo-600 text-white" : "bg-slate-100 text-indigo-600"}`}>
+                                    <track.icon className="h-6 w-6" />
                                 </div>
-                                <h3 className="font-bold mb-2 text-lg" style={{ color: "#1E293B" }}>{track.name}</h3>
-                                <p className="text-sm" style={{ color: "#64748B" }}>{track.desc}</p>
+                                <h3 className="mb-2 text-lg font-bold text-slate-900">{track.name}</h3>
+                                <p className="text-sm leading-relaxed text-slate-500">{track.desc}</p>
                             </motion.div>
                         );
                     })}
                 </div>
 
-                <div className="flex justify-center">
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.35 }}
+                    className="flex justify-center"
+                >
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleContinue}
                         disabled={!selected || isSubmitting}
-                        className="inline-flex items-center gap-3 px-12 py-4 rounded-2xl text-white font-semibold text-base transition-all"
-                        style={{
-                            background: selected ? "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)" : "#D1D5DB",
-                            opacity: isSubmitting ? 0.7 : 1
-                        }}
+                        className={`inline-flex items-center gap-3 rounded-full px-12 py-4 text-base font-semibold text-white transition-all duration-300 ${selected ? "bg-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] hover:-translate-y-1" : "cursor-not-allowed bg-slate-300"} disabled:opacity-70`}
                     >
                         {isSubmitting ? "Đang xử lý..." : "Tiếp tục"}
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="h-5 w-5" />
                     </motion.button>
-                </div>
+                </motion.div>
 
             </motion.div>
         </div>

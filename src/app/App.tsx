@@ -38,7 +38,7 @@ import { WritingPracticeHistory } from "../features/toeic-writing/ui/WritingPrac
 
 export default function App() {
   return (
-    <div style={{ fontFamily: "'Poppins', sans-serif", background: "#F9FAFB", minHeight: "100vh" }}>
+    <div className="bg-slate-50 text-slate-900 antialiased" style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif", minHeight: "100vh" }}>
       <BrowserRouter>
         <Toaster
           position="top-right"

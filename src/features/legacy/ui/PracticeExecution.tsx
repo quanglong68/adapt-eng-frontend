@@ -47,8 +47,7 @@ export function PracticeExecution() {
   if (!isLoading && questions.length === 0) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center"
-        style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}
+        className="min-h-screen flex flex-col items-center justify-center bg-slate-50"
       >
         <div className="bg-white p-8 rounded-3xl shadow-lg text-center max-w-md w-full border border-slate-100">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -60,7 +59,7 @@ export function PracticeExecution() {
           </p>
           <button
             onClick={() => navigate("/")}
-            className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition"
+            className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-500 transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:-translate-y-1"
           >
             Quay lại trang chủ
           </button>
@@ -122,22 +121,20 @@ export function PracticeExecution() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-3xl p-10 mb-6"
-          style={{ boxShadow: "0 8px 48px rgba(0,0,0,0.08)", border: "1px solid #F1F5F9" }}
+          className="bg-white rounded-3xl p-10 mb-6 shadow-lg border border-slate-100"
         >
           <div className="flex items-center gap-2 mb-5">
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-              style={{ background: theme.primary }}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-emerald-500"
             >
               {currentNumber}
             </div>
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#94A3B8" }}>
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">
               Điền vào chỗ trống
             </span>
           </div>
 
-          <p className="text-xl leading-relaxed" style={{ color: "#1E293B" }}>
+          <p className="text-xl leading-relaxed text-slate-800">
             {parts.map((part, index) => (
               <React.Fragment key={index}>
                 {part}
@@ -148,8 +145,7 @@ export function PracticeExecution() {
                       borderBottomColor: selectedAnswerForCurrentQuestion ? theme.blankBorder : "#CBD5E1",
                       color: selectedAnswerForCurrentQuestion ? theme.blankColor : "#94A3B8",
                     }}
-                    className="inline-block px-4 py-1 mx-1 rounded-lg border-b-2 align-baseline"
-                    style={{ fontWeight: 700, minWidth: "80px", textAlign: "center" }}
+                    className="inline-block px-4 py-1 mx-1 rounded-lg border-b-2 align-baseline font-bold min-w-[80px] text-center"
                   >
                     {answerTokens[index] ? answerTokens[index] : "________"}
                   </motion.span>
@@ -161,7 +157,7 @@ export function PracticeExecution() {
       }
       optionsContent={
         isLoading ? (
-          <div className="text-center text-gray-500 py-10">Đang tải câu hỏi...</div>
+          <div className="text-center text-slate-500 py-10">Đang tải câu hỏi...</div>
         ) : currentQuestion ? (
           currentQuestion.options.map((optionText, i) => (
             <GeneralOptionButton

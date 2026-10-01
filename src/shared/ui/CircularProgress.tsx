@@ -7,7 +7,7 @@ const VARIANT_CONFIG = {
     trackColor: "#FEE2E2",
     gradientFrom: "#F43F5E",
     gradientTo: "#EF4444",
-    valueColor: "#EF4444",
+    valueClass: "text-red-500",
     centerVariant: "fraction-animated" as const,
     animationDelay: 0.5,
     label: "câu đúng",
@@ -16,7 +16,7 @@ const VARIANT_CONFIG = {
     trackColor: "#E1F5FE",
     gradientFrom: "#10B981",
     gradientTo: "#059669",
-    valueColor: "#10B981",
+    valueClass: "text-emerald-500",
     centerVariant: "fraction-animated" as const,
     animationDelay: 0.5,
     label: "câu đúng",
@@ -25,7 +25,7 @@ const VARIANT_CONFIG = {
     trackColor: "#FEE2E2",
     gradientFrom: "#4F46E5",
     gradientTo: "#7C3AED",
-    valueColor: "#312E81",
+    valueClass: "text-indigo-900",
     centerVariant: "stacked" as const,
     animationDelay: 0.2,
     label: "câu",
@@ -34,7 +34,7 @@ const VARIANT_CONFIG = {
     trackColor: "#E1F5FE",
     gradientFrom: "#10B981",
     gradientTo: "#059669",
-    valueColor: "#10B981",
+    valueClass: "text-emerald-500",
     centerVariant: "fraction-large" as const,
     animationDelay: 0.5,
     label: "câu đúng",
@@ -80,22 +80,21 @@ export function CircularProgress({ value, max, variant = "test" }: CircularProgr
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 1, duration: 0.5, type: "spring" }}
-              className="text-4xl font-bold"
-              style={{ color: config.valueColor }}
+              className={`text-4xl font-bold ${config.valueClass}`}
             >
               {value}/{max}
             </motion.span>
-            <span className="text-xs mt-1" style={{ color: "#94A3B8" }}>
+            <span className="text-xs mt-1 text-slate-400">
               {config.label}
             </span>
           </>
         )}
         {config.centerVariant === "stacked" && (
           <>
-            <span className="text-5xl font-black" style={{ color: config.valueColor, letterSpacing: "-1px" }}>
+            <span className={`text-5xl font-black tracking-tight ${config.valueClass}`}>
               {value}
             </span>
-            <span className="text-sm font-bold" style={{ color: "#6366F1" }}>
+            <span className="text-sm font-bold text-indigo-500">
               / {max} {config.label}
             </span>
           </>
@@ -106,12 +105,11 @@ export function CircularProgress({ value, max, variant = "test" }: CircularProgr
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 1, duration: 0.5, type: "spring" }}
-              className="text-5xl font-black"
-              style={{ color: config.valueColor, letterSpacing: "-1px" }}
+              className={`text-5xl font-black tracking-tight ${config.valueClass}`}
             >
               {value}/{max}
             </motion.span>
-            <span className="text-xs mt-1 font-bold" style={{ color: "#94A3B8" }}>
+            <span className="text-xs mt-1 font-bold text-slate-400">
               {config.label}
             </span>
           </>

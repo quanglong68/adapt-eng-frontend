@@ -14,8 +14,7 @@ export function SkillToggle({ currentSkill, onChange }: SkillToggleProps) {
             <motion.button
                 type="button"
                 onClick={() => onChange("READING_LISTENING")}
-                className="relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-colors w-40"
-                style={{ color: currentSkill === "READING_LISTENING" ? "#4F46E5" : "#64748B" }}
+                className={`relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-colors w-40 ${currentSkill === "READING_LISTENING" ? "text-indigo-600" : "text-slate-500"}`}
             >
                 {currentSkill === "READING_LISTENING" && (
                     <motion.div layoutId="skill-toggle-bg" className="absolute inset-0 bg-white rounded-lg shadow-sm" />
@@ -27,8 +26,7 @@ export function SkillToggle({ currentSkill, onChange }: SkillToggleProps) {
             <motion.button
                 type="button"
                 onClick={() => onChange("WRITING")}
-                className="relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-colors w-40"
-                style={{ color: currentSkill === "WRITING" ? "#4F46E5" : "#64748B" }}
+                className={`relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-colors w-40 ${currentSkill === "WRITING" ? "text-indigo-600" : "text-slate-500"}`}
             >
                 {currentSkill === "WRITING" && (
                     <motion.div layoutId="skill-toggle-bg" className="absolute inset-0 bg-white rounded-lg shadow-sm" />
