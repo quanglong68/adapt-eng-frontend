@@ -1,40 +1,40 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LevelSelectTest } from "./pages/LevelSelectTest";
-import { TestExecution } from "./pages/TestExecution";
-import { TestResult } from "./pages/TestResult";
-import { TestReviewMistakes } from "./pages/TestReviewMistakes";
-import { Dashboard } from "./pages/Dashboard";
-import { Login } from "./pages/Login";
-import { PracticeExecution } from "./pages/PracticeExecution";
-import { PracticeResult } from "./pages/PracticeResult";
-import { PracticeReviewMistakes } from "./pages/PracticeReviewMistakes";
-import { KnowledgeMap } from "./pages/KnowledgeMap";
-import { TrackSelect } from "./pages/TrackSelect";
-import { SkillSelect } from "./pages/SkillSelect"; // <-- IMPORT TRANG MỚI VÀO ĐÂY
-import { ToeicTestExecution } from "./pages/ToeicTestExecution";
-import { ToeicTestResult } from "./pages/ToeicTestResult";
-import { ToeicTestReviewMistakes } from "./pages/ToeicTestReviewMistakes";
-import { ToeicPracticeExecution } from "./pages/ToeicPracticeExecution";
-import { ToeicPracticeResult } from "./pages/ToeicPracticeResult";
-import { ToeicPracticeReviewMistakes } from "./pages/ToeicPracticeReviewMistakes";
-import { UserProfile } from "./pages/UserProfile";
-import { Pricing } from "./pages/Pricing";
-import { PaymentResult } from "./pages/PaymentResult";
-import { VipEntertainment } from "./pages/VipEntertainment";
-import { TransactionHistory } from "./components/vip/TransactionHistory";
+import { LevelSelectTest } from "../features/auth/ui/LevelSelectTest";
+import { TestExecution } from "../features/legacy/ui/TestExecution";
+import { TestResult } from "../features/legacy/ui/TestResult";
+import { TestReviewMistakes } from "../features/legacy/ui/TestReviewMistakes";
+import { Dashboard } from "../features/progress/ui/Dashboard";
+import { Login } from "../features/auth/ui/Login";
+import { PracticeExecution } from "../features/legacy/ui/PracticeExecution";
+import { PracticeResult } from "../features/legacy/ui/PracticeResult";
+import { PracticeReviewMistakes } from "../features/legacy/ui/PracticeReviewMistakes";
+import { KnowledgeMap } from "../features/progress/ui/KnowledgeMap";
+import { TrackSelect } from "../features/auth/ui/TrackSelect";
+import { SkillSelect } from "../features/auth/ui/SkillSelect"; // <-- IMPORT TRANG MỚI VÀO ĐÂY
+import { ToeicTestExecution } from "../features/toeic-reading/ui/ToeicTestExecution";
+import { ToeicTestResult } from "../features/toeic-reading/ui/ToeicTestResult";
+import { ToeicTestReviewMistakes } from "../features/toeic-reading/ui/ToeicTestReviewMistakes";
+import { ToeicPracticeExecution } from "../features/toeic-reading/ui/ToeicPracticeExecution";
+import { ToeicPracticeResult } from "../features/toeic-reading/ui/ToeicPracticeResult";
+import { ToeicPracticeReviewMistakes } from "../features/toeic-reading/ui/ToeicPracticeReviewMistakes";
+import { UserProfile } from "../features/progress/ui/UserProfile";
+import { Pricing } from "../features/billing/ui/Pricing";
+import { PaymentResult } from "../features/billing/ui/PaymentResult";
+import { VipEntertainment } from "../features/premium/ui/VipEntertainment";
+import { TransactionHistoryPage } from "../features/billing/ui/TransactionHistoryPage";
 import { Toaster } from "react-hot-toast";
-import { PracticeHistory } from "./pages/PracticeHistory";
-import { LevelGuardModal } from "./components/shared/LevelGuardModal";
-import { DeepDiveTestPage } from "./pages/DeepDiveTestPage";
+import { ToeicPracticeHistory } from "../features/toeic-reading/ui/ToeicPracticeHistory";
+import { LevelGuardModal } from "../shared/ui/LevelGuardModal";
+import { DeepDiveTestPage } from "../features/premium/ui/DeepDiveTestPage";
 
 
-import { WritingTestExecution } from "./pages/WritingTestExecution";
-import { WritingTestResult } from "./pages/WritingTestResult";
-import { WritingTestReviewMistakes } from "./pages/WritingTestReviewMistakes";
-import { WritingPracticeExecution } from "./pages/WritingPracticeExecution";
-import { WritingPracticeResult } from "./pages/WritingPracticeResult";
-import { WritingPracticeReviewMistakes } from "./pages/WritingPracticeReviewMistakes";
-import { WritingPracticeHistory } from "./pages/WritingPracticeHistory";
+import { WritingTestExecution } from "../features/toeic-writing/ui/WritingTestExecution";
+import { WritingTestResult } from "../features/toeic-writing/ui/WritingTestResult";
+import { WritingTestReviewMistakes } from "../features/toeic-writing/ui/WritingTestReviewMistakes";
+import { WritingPracticeExecution } from "../features/toeic-writing/ui/WritingPracticeExecution";
+import { WritingPracticeResult } from "../features/toeic-writing/ui/WritingPracticeResult";
+import { WritingPracticeReviewMistakes } from "../features/toeic-writing/ui/WritingPracticeReviewMistakes";
+import { WritingPracticeHistory } from "../features/toeic-writing/ui/WritingPracticeHistory";
 
 export default function App() {
   return (
@@ -78,12 +78,12 @@ export default function App() {
           <Route path="/toeic/practice-review-mistakes" element={<ToeicPracticeReviewMistakes />} />
 
           <Route path="/toeic/test/deep-dive/:sessionId" element={<DeepDiveTestPage />} />
-          <Route path="/practice-history" element={<PracticeHistory />} />
+          <Route path="/practice-history" element={<ToeicPracticeHistory />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/payment-result" element={<PaymentResult />} />
           <Route path="/vip-entertainment" element={<VipEntertainment />} />
-          <Route path="/transaction-history" element={<TransactionHistory />} />
+          <Route path="/transaction-history" element={<TransactionHistoryPage />} />
 
           {/* CÁC ROUTE WRITING */}
           <Route path="/toeic/writing/select-level" element={<LevelSelectTest />} />
