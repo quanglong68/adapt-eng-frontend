@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Flame, Bell, BookOpen, Brain, Target, ChevronRight, Zap, Star,
   Play, Map, Loader2, LogOut, User, Crown, Sparkles, CreditCard,
-  History, AlertTriangle, X, CheckCircle2
+  History, AlertTriangle, X, CheckCircle2, Edit3, Lock
 } from "lucide-react";
 import { dashboardService } from "../services/dashboard.service";
 import { userService } from "../services/user.service";
@@ -14,14 +14,20 @@ import { notificationService } from "../services/notification.service";
 import { AppNotification } from "../types/notification.type";
 import { deepDiveService } from "../services/deepDive.service";
 import { DeepDiveRecommendation } from "../types/deepDive.type";
+import { SkillToggle, SkillType } from "../components/shared/SkillToggle";
 
 type DeepDiveStatus = 'IDLE' | 'GENERATING' | 'READY';
 
-// 🚀 HÀM HELPER: Tạo Key duy nhất (Kết hợp ID và từ vựng) để chống lỗi lây lan state giữa các nút
 const getUniqueKey = (item: DeepDiveRecommendation) => `${item.knowledgeItemId}_${item.targetWord || 'no_word'}`;
 
 export function Dashboard() {
   const navigate = useNavigate();
+
+  const [activeSkill, setActiveSkill] = useState<SkillType>("READING_LISTENING");
+
+  // Dùng state riêng chuẩn 100% từ Profile API
+  const [readingLevel, setReadingLevel] = useState<string | null>(null);
+  const [writingLevel, setWritingLevel] = useState<string | null>(null);
 
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +46,6 @@ export function Dashboard() {
   const notifMenuRef = useRef<HTMLDivElement>(null);
 
   const [weaknesses, setWeaknesses] = useState<DeepDiveRecommendation[]>([]);
-  // 🚀 Đổi từ Record<knowledgeItemId> sang Record<UniqueKey>
   const [deepDiveStates, setDeepDiveStates] = useState<Record<string, { status: DeepDiveStatus, sessionId?: string }>>({});
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -69,7 +74,6 @@ export function Dashboard() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    // 🚀 SỬA LỖI TYPESCRIPT: Trích xuất `env` thông qua kiểu ép tĩnh (Type Assertion)
     const env = (import.meta as any).env;
     const baseUrl = env?.VITE_API_URL || 'http://localhost:8080';
 
@@ -96,16 +100,14 @@ export function Dashboard() {
           deepDiveService.getRecommendations().catch(() => [])
         ]);
 
-        if (!dashData.currentLevel) {
-          window.dispatchEvent(new CustomEvent("REQUIRE_PLACEMENT_TEST"));
-          return;
-        }
-
         setDashboardData(dashData);
         setIsPremium(profileData.premium);
         setWeaknesses(weaknessData);
 
-        // 🚀 CẬP NHẬT STATE TỪ BACKEND ĐỂ CHỐNG MẤT NÚT KHI F5
+        // CẬP NHẬT CẢ 2 LEVEL TỪ CHUẨN API PROFILE 
+        setReadingLevel(profileData.currentLevel || null);
+        setWritingLevel(profileData.writingCurrentLevel || null);
+
         const initialStates: Record<string, { status: DeepDiveStatus, sessionId?: string }> = {};
         weaknessData.forEach((item) => {
           if (item.activeSessionId && item.activeSessionStatus) {
@@ -122,7 +124,9 @@ export function Dashboard() {
         localStorage.setItem('fullName', profileData.fullName);
         localStorage.setItem('email', profileData.email);
         localStorage.setItem('premium', profileData.premium ? 'true' : 'false');
-        localStorage.setItem('currentLevel', dashData.currentLevel);
+
+        // Cache lại level cũ cho hệ thống
+        if (profileData.currentLevel) localStorage.setItem('currentLevel', profileData.currentLevel);
 
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu Dashboard:", error);
@@ -136,7 +140,7 @@ export function Dashboard() {
   const handleConfirmGenerate = async () => {
     if (!modalState.item) return;
     const { knowledgeItemId, targetWord } = modalState.item;
-    const uniqueKey = getUniqueKey(modalState.item); // 🚀 Dùng Unique Key
+    const uniqueKey = getUniqueKey(modalState.item);
 
     setDeepDiveStates(prev => ({ ...prev, [uniqueKey]: { status: 'GENERATING' } }));
 
@@ -148,7 +152,6 @@ export function Dashboard() {
       }));
     } catch (error: any) {
       setDeepDiveStates(prev => ({ ...prev, [uniqueKey]: { status: 'IDLE' } }));
-      console.error(error.response?.data?.message || "Lỗi tạo đề");
       alert("Không thể khởi tạo AI lúc này. Vui lòng thử lại sau!");
     }
   };
@@ -163,7 +166,7 @@ export function Dashboard() {
     const interval = setInterval(async () => {
       retryCount++;
 
-      for (const [uniqueKey, state] of generatingItems) { // 🚀 Dùng Unique Key
+      for (const [uniqueKey, state] of generatingItems) {
         if (retryCount >= MAX_RETRIES) {
           setDeepDiveStates(prev => ({ ...prev, [uniqueKey]: { status: 'IDLE' } }));
           alert("Thời gian tạo đề quá lâu. Vui lòng thử lại sau!");
@@ -173,7 +176,6 @@ export function Dashboard() {
         try {
           const responseData = await deepDiveService.getSessionQuestions(state.sessionId!);
           sessionStorage.setItem(`deep_dive_${state.sessionId}`, JSON.stringify(responseData));
-
           setDeepDiveStates(prev => ({ ...prev, [uniqueKey]: { status: 'READY', sessionId: state.sessionId } }));
         } catch (error: any) {
           if (error.response && error.response.status !== 404) {
@@ -241,9 +243,22 @@ export function Dashboard() {
 
   const handleStartPractice = () => {
     if (currentTrack === "TOEIC") {
-      navigate("/toeic/practice");
+      // Skill Writing có lộ trình luyện tập riêng, không dùng chung với Reading & Nghe
+      if (activeSkill === "WRITING") {
+        navigate("/toeic/writing/practice");
+      } else {
+        navigate("/toeic/practice");
+      }
     } else {
       navigate("/practice-execution");
+    }
+  };
+
+  const handlePlacementTestRoute = () => {
+    if (activeSkill === "WRITING") {
+      navigate("/toeic/writing/select-level");
+    } else {
+      navigate("/select-level");
     }
   };
 
@@ -264,12 +279,21 @@ export function Dashboard() {
     );
   }
 
+  // --- LOGIC HIỂN THỊ LEVEL VÀ KHÓA MÀN HÌNH SIÊU CHUẨN ---
+  const displayLevel = activeSkill === "WRITING"
+    ? (writingLevel || "Chưa có")
+    : (readingLevel || "Chưa có");
+
+  const isLocked =
+    (activeSkill === "WRITING" && !writingLevel) ||
+    (activeSkill === "READING_LISTENING" && !readingLevel);
+
   return (
-    <div className="min-h-screen" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
+    <div className="min-h-screen relative" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
 
       <AnimatePresence>
         {modalState.isOpen && modalState.item && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 bg-slate-900/40 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
@@ -327,12 +351,18 @@ export function Dashboard() {
         )}
       </AnimatePresence>
 
-      <div className="bg-white border-b px-8 py-4 flex items-center justify-between" style={{ borderColor: "#E5E7EB" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#4F46E5" }}>
-            <BookOpen className="w-5 h-5 text-white" />
+      <div className="bg-white border-b px-8 py-4 flex items-center justify-between relative z-50" style={{ borderColor: "#E5E7EB" }}>
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#4F46E5" }}>
+              <BookOpen className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-bold" style={{ color: "#1E293B" }}>AdaptEng</span>
           </div>
-          <span className="text-lg font-bold" style={{ color: "#1E293B" }}>AdaptEng</span>
+
+          {currentTrack === "TOEIC" && (
+            <SkillToggle currentSkill={activeSkill} onChange={setActiveSkill} />
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -346,8 +376,8 @@ export function Dashboard() {
           </motion.div>
 
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: "#EEF2FF", border: "1px solid #C7D2FE" }}>
-            <Star className="w-4 h-4" style={{ color: "#4F46E5" }} />
-            <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>{dashboardData.currentLevel}</span>
+            {activeSkill === "WRITING" ? <Edit3 className="w-4 h-4" style={{ color: "#4F46E5" }} /> : <Star className="w-4 h-4" style={{ color: "#4F46E5" }} />}
+            <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>{displayLevel}</span>
           </div>
 
           <div className="relative" ref={notifMenuRef}>
@@ -494,341 +524,380 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="px-8 py-8 max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="text-2xl font-bold" style={{ color: "#1E293B" }}>
-            Chào buổi sáng, {userFullName}! 👋
-          </h1>
-          <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hãy duy trì streak {" "}
-            <span className="font-semibold" style={{ color: "#EA580C" }}>🔥 {dashboardData.streakDays} ngày</span>{" "}
-            của bạn nhé!
-          </p>
-        </motion.div>
+      <div className="relative px-8 py-8 max-w-6xl mx-auto">
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 space-y-6">
-
+        {/* LỚP OVERLAY KHÓA z-index cao (z-[100]) */}
+        <AnimatePresence>
+          {isLocked && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="rounded-3xl p-7 relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #9333EA 100%)",
-                boxShadow: "0 12px 40px rgba(79,70,229,0.35)",
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[100] bg-white/60 backdrop-blur-md flex flex-col items-center justify-center rounded-3xl m-4 border border-slate-200 shadow-xl"
             >
-              <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-15" style={{ background: "#fff" }} />
-              <div className="absolute bottom-0 right-12 w-20 h-20 rounded-full opacity-10" style={{ background: "#fff" }} />
-
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3"
-                      style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}>
-                      <Flame className="w-3.5 h-3.5" /> Nhiệm vụ hôm nay
-                    </div>
-                    <h2 className="text-xl font-bold text-white mb-2">Đã đến lúc ôn tập! ⏰</h2>
-                    <p className="text-sm" style={{ color: "rgba(199,210,254,0.9)" }}>
-                      AI phát hiện bạn đang có <strong style={{ color: "#fff" }}>{dashboardData.dailyMissionCount} chủ điểm</strong> cần ôn gấp.
-                      Hãy luyện tập ngay để đưa chúng vào bộ nhớ dài hạn.
-                    </p>
-                  </div>
-                  <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="text-4xl">
-                    🧠
-                  </motion.div>
+              <div className="bg-white p-8 rounded-3xl max-w-md text-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 relative overflow-hidden">
+                <div className={`absolute top-0 left-0 w-full h-2 ${activeSkill === "WRITING" ? "bg-indigo-500" : "bg-emerald-500"}`} />
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${activeSkill === "WRITING" ? "bg-indigo-50 text-indigo-500" : "bg-emerald-50 text-emerald-500"}`}>
+                  <Lock className="w-8 h-8" />
                 </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleStartPractice}
-                  className="mt-4 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
-                  style={{ background: "#fff", color: "#4F46E5", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">Tính năng bị khóa</h3>
+                <p className="text-slate-500 mb-8 leading-relaxed">
+                  Để sử dụng các tính năng luyện tập, bạn cần hoàn thành bài Đánh giá Năng lực cho kỹ năng <strong>{activeSkill === "WRITING" ? "Viết (Writing)" : "Đọc & Nghe"}</strong> trước.
+                </p>
+                <button
+                  onClick={handlePlacementTestRoute}
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2 ${activeSkill === "WRITING" ? "shadow-indigo-200 bg-indigo-600 hover:bg-indigo-700" : "shadow-emerald-200 bg-emerald-500 hover:bg-emerald-600"}`}
                 >
-                  <Play className="w-4 h-4" />
-                  Bắt đầu ôn tập
-                </motion.button>
+                  <Target className="w-5 h-5" /> Làm bài Đánh giá ngay
+                </button>
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-              className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm"
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-rose-50">
-                    <AlertTriangle className="w-4 h-4 text-rose-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                      Top điểm yếu cần khắc phục <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] rounded uppercase">VIP</span>
-                    </h3>
-                    <p className="text-xs text-slate-500">Dựa trên thuật toán AI Spaced Repetition</p>
-                  </div>
-                </div>
-              </div>
+        {/* NỘI DUNG CHÍNH (Sẽ bị blur nếu isLocked = true) */}
+        <div className={`transition-all duration-500 ${isLocked ? "blur-md opacity-40 pointer-events-none select-none" : ""}`}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <h1 className="text-2xl font-bold" style={{ color: "#1E293B" }}>
+              Chào buổi sáng, {userFullName}! 👋
+            </h1>
+            <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hãy duy trì streak {" "}
+              <span className="font-semibold" style={{ color: "#EA580C" }}>🔥 {dashboardData.streakDays} ngày</span>{" "}
+              của bạn nhé!
+            </p>
+          </motion.div>
 
-              {weaknesses.length === 0 ? (
-                <div className="text-center py-6 text-sm text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  🎉 Tuyệt vời! Bạn không có điểm yếu nào ở mức báo động đỏ.
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
-                  {weaknesses.map((item, index) => {
-                    const state = deepDiveStates[getUniqueKey(item)];
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2 space-y-6">
 
-                    return (
-                      <div key={index} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition border border-slate-100">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${index < 3 ? 'bg-rose-100 text-rose-600' : 'bg-orange-100 text-orange-600'}`}>
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-sm text-slate-800 mb-1">
-                              {formatItemName(item)}
-                            </h4>
-                            <p className="text-xs text-slate-500 flex items-center gap-1">
-                              Mức độ hổng kiến thức:
-                              <span className={`font-semibold ${item.difficultyLevel === 'Rất cao' ? 'text-rose-500' : 'text-orange-500'}`}>
-                                {item.difficultyLevel}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-
-                        <PremiumGuard isPremium={isPremium}>
-                          {state?.status === 'GENERATING' ? (
-                            <button disabled className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-200 cursor-not-allowed flex items-center gap-2 w-[140px] justify-center">
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang tạo...
-                            </button>
-                          ) : state?.status === 'READY' ? (
-                            <button onClick={() => navigate(`/toeic/test/deep-dive/${state.sessionId}`)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-md shadow-emerald-500/20 w-[140px] justify-center">
-                              <Play className="w-3.5 h-3.5" /> Làm bài ngay
-                            </button>
-                          ) : (
-                            <button onClick={() => setModalState({ isOpen: true, item })} className="px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 border border-indigo-100 w-[140px] justify-center">
-                              <Brain className="w-3.5 h-3.5" /> Ôn chuyên sâu
-                            </button>
-                          )}
-                        </PremiumGuard>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-              className="bg-white rounded-3xl p-6"
-              style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold" style={{ color: "#1E293B" }}>Hoạt động gần đây</h3>
-              </div>
-
-              <div className="space-y-4">
-                {dashboardData.recentActivities.length === 0 ? (
-                  <p className="text-sm text-center text-gray-500 py-4">Chưa có hoạt động nào. Hãy làm bài tập ngay!</p>
-                ) : (
-                  dashboardData.recentActivities.map((item, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.1 }} className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
-                        <BookOpen className="w-4 h-4" style={{ color: item.color }} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</span>
-                          <span className="text-xs" style={{ color: "#94A3B8" }}>{item.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 rounded-full" style={{ background: "#F1F5F9" }}>
-                            <div className="h-full rounded-full" style={{ width: `${(item.score / item.total) * 100}%`, background: item.color }} />
-                          </div>
-                          <span className="text-xs font-semibold" style={{ color: item.color }}>{item.score}/{item.total}</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </motion.div>
-
-            {dashboardData.levelUpProgress && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-                className="bg-white rounded-3xl p-6 relative overflow-hidden"
-                style={{ border: "2px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                className="rounded-3xl p-7 relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #9333EA 100%)",
+                  boxShadow: "0 12px 40px rgba(79,70,229,0.35)",
+                }}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-60 pointer-events-none" />
+                <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-15" style={{ background: "#fff" }} />
+                <div className="absolute bottom-0 right-12 w-20 h-20 rounded-full opacity-10" style={{ background: "#fff" }} />
 
                 <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                  <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>
-                        Hành trình thăng cấp <span className="text-indigo-600 font-black">{dashboardData.levelUpProgress.targetLevel}</span> 👑
-                      </h3>
-                      <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hoàn thành các chỉ tiêu để mở khóa bài thi Thăng Cấp.</p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3"
+                        style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}>
+                        <Flame className="w-3.5 h-3.5" /> Nhiệm vụ hôm nay ({activeSkill === "WRITING" ? "Writing" : "Reading & Listening"})
+                      </div>
+                      <h2 className="text-xl font-bold text-white mb-2">Đã đến lúc ôn tập! ⏰</h2>
+                      <p className="text-sm" style={{ color: "rgba(199,210,254,0.9)" }}>
+                        AI phát hiện bạn đang có <strong style={{ color: "#fff" }}>{dashboardData.dailyMissionCount} chủ điểm</strong> cần ôn gấp.
+                        Hãy luyện tập ngay để đưa chúng vào bộ nhớ dài hạn.
+                      </p>
                     </div>
-
-                    <button
-                      onClick={() => navigate(`/toeic/test/${dashboardData.levelUpProgress?.targetLevel}?mode=level-up`)}
-                      disabled={!dashboardData.levelUpProgress.eligibleForBoss}
-                      className="px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50 shrink-0"
-                      style={{
-                        background: dashboardData.levelUpProgress.eligibleForBoss
-                          ? "linear-gradient(135deg, #10B981, #059669)"
-                          : "#F1F5F9",
-                        color: dashboardData.levelUpProgress.eligibleForBoss ? "#fff" : "#94A3B8",
-                        boxShadow: dashboardData.levelUpProgress.eligibleForBoss ? "0 4px 15px rgba(16, 185, 129, 0.4)" : "none",
-                        cursor: dashboardData.levelUpProgress.eligibleForBoss ? "pointer" : "not-allowed"
-                      }}
-                    >
-                      {dashboardData.levelUpProgress.cooldownActive
-                        ? `Khóa (Còn ${dashboardData.levelUpProgress.daysLeftToRetry} ngày)`
-                        : "Thi Thăng Cấp"
-                      }
-                    </button>
+                    <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="text-4xl">
+                      🧠
+                    </motion.div>
                   </div>
 
-                  <div className="space-y-5">
+                  <motion.button
+                    whileHover={{ scale: 1.03, boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleStartPractice}
+                    className="mt-4 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
+                    style={{ background: "#fff", color: "#4F46E5", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
+                  >
+                    <Play className="w-4 h-4" />
+                    Bắt đầu ôn tập
+                  </motion.button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-rose-50">
+                      <AlertTriangle className="w-4 h-4 text-rose-500" />
+                    </div>
                     <div>
-                      <div className="flex justify-between text-sm font-semibold mb-2">
-                        <span style={{ color: "#475569" }}>🔥 Tích lũy giờ học (XP)</span>
-                        <span style={{ color: "#F59E0B" }}>
-                          {dashboardData.levelUpProgress.currentTotalXp.toLocaleString()} / {dashboardData.levelUpProgress.requiredTotalXp.toLocaleString()} XP
-                        </span>
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                        Top điểm yếu cần khắc phục <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] rounded uppercase">VIP</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">Dựa trên thuật toán AI Spaced Repetition</p>
+                    </div>
+                  </div>
+                </div>
+
+                {weaknesses.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    🎉 Tuyệt vời! Bạn không có điểm yếu nào ở mức báo động đỏ.
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
+                    {weaknesses.map((item, index) => {
+                      const state = deepDiveStates[getUniqueKey(item)];
+
+                      return (
+                        <div key={index} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition border border-slate-100">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${index < 3 ? 'bg-rose-100 text-rose-600' : 'bg-orange-100 text-orange-600'}`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-sm text-slate-800 mb-1">
+                                {formatItemName(item)}
+                              </h4>
+                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                Mức độ hổng kiến thức:
+                                <span className={`font-semibold ${item.difficultyLevel === 'Rất cao' ? 'text-rose-500' : 'text-orange-500'}`}>
+                                  {item.difficultyLevel}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <PremiumGuard isPremium={isPremium}>
+                            {state?.status === 'GENERATING' ? (
+                              <button disabled className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-200 cursor-not-allowed flex items-center gap-2 w-[140px] justify-center">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang tạo...
+                              </button>
+                            ) : state?.status === 'READY' ? (
+                              <button onClick={() => navigate(`/toeic/test/deep-dive/${state.sessionId}`)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-all flex items-center gap-2 shadow-md shadow-emerald-500/20 w-[140px] justify-center">
+                                <Play className="w-3.5 h-3.5" /> Làm bài ngay
+                              </button>
+                            ) : (
+                              <button onClick={() => setModalState({ isOpen: true, item })} className="px-4 py-2.5 rounded-xl text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 border border-indigo-100 w-[140px] justify-center">
+                                <Brain className="w-3.5 h-3.5" /> Ôn chuyên sâu
+                              </button>
+                            )}
+                          </PremiumGuard>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="bg-white rounded-3xl p-6"
+                style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="font-bold" style={{ color: "#1E293B" }}>Hoạt động gần đây</h3>
+                </div>
+
+                <div className="space-y-4">
+                  {dashboardData.recentActivities.length === 0 ? (
+                    <p className="text-sm text-center text-gray-500 py-4">Chưa có hoạt động nào. Hãy làm bài tập ngay!</p>
+                  ) : (
+                    dashboardData.recentActivities.map((item, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.1 }} className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
+                          <BookOpen className="w-4 h-4" style={{ color: item.color }} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</span>
+                            <span className="text-xs" style={{ color: "#94A3B8" }}>{item.time}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full" style={{ background: "#F1F5F9" }}>
+                              <div className="h-full rounded-full" style={{ width: `${(item.score / item.total) * 100}%`, background: item.color }} />
+                            </div>
+                            <span className="text-xs font-semibold" style={{ color: item.color }}>{item.score}/{item.total}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+
+              {dashboardData.levelUpProgress && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                  className="bg-white rounded-3xl p-6 relative overflow-hidden"
+                  style={{ border: "2px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-60 pointer-events-none" />
+
+                  <div className="relative z-10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                      <div>
+                        <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>
+                          Hành trình thăng cấp <span className="text-indigo-600 font-black">{dashboardData.levelUpProgress.targetLevel}</span> 👑
+                        </h3>
+                        <p className="text-sm mt-1" style={{ color: "#64748B" }}>Hoàn thành các chỉ tiêu để mở khóa bài thi Thăng Cấp.</p>
                       </div>
-                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.currentTotalXp / dashboardData.levelUpProgress.requiredTotalXp) * 100)}%` }}
-                        />
-                      </div>
+
+                      <button
+                        onClick={() => navigate(`/toeic/test/${dashboardData.levelUpProgress?.targetLevel}?mode=level-up`)}
+                        disabled={!dashboardData.levelUpProgress.eligibleForBoss}
+                        className="px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50 shrink-0"
+                        style={{
+                          background: dashboardData.levelUpProgress.eligibleForBoss
+                            ? "linear-gradient(135deg, #10B981, #059669)"
+                            : "#F1F5F9",
+                          color: dashboardData.levelUpProgress.eligibleForBoss ? "#fff" : "#94A3B8",
+                          boxShadow: dashboardData.levelUpProgress.eligibleForBoss ? "0 4px 15px rgba(16, 185, 129, 0.4)" : "none",
+                          cursor: dashboardData.levelUpProgress.eligibleForBoss ? "pointer" : "not-allowed"
+                        }}
+                      >
+                        {dashboardData.levelUpProgress.cooldownActive
+                          ? `Khóa (Còn ${dashboardData.levelUpProgress.daysLeftToRetry} ngày)`
+                          : "Thi Thăng Cấp"
+                        }
+                      </button>
                     </div>
 
+                    <div className="space-y-5">
+                      <div>
+                        <div className="flex justify-between text-sm font-semibold mb-2">
+                          <span style={{ color: "#475569" }}>🔥 Tích lũy giờ học (XP)</span>
+                          <span style={{ color: "#F59E0B" }}>
+                            {dashboardData.levelUpProgress.currentTotalXp.toLocaleString()} / {dashboardData.levelUpProgress.requiredTotalXp.toLocaleString()} XP
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.currentTotalXp / dashboardData.levelUpProgress.requiredTotalXp) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-sm font-semibold mb-2">
+                          <span style={{ color: "#475569" }}>🎯 Phong độ (7 ngày qua)</span>
+                          <span style={{ color: "#3B82F6" }}>
+                            {dashboardData.levelUpProgress.current7DayAccuracy}% / {dashboardData.levelUpProgress.required7DayAccuracy}%
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.current7DayAccuracy / dashboardData.levelUpProgress.required7DayAccuracy) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                className="rounded-3xl p-1 relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
+              >
+                <div className="bg-white rounded-[22px] p-6 h-full flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -mr-10 -mt-10 opacity-50 pointer-events-none" />
+                  <div className="relative z-10 flex items-center justify-between">
                     <div>
-                      <div className="flex justify-between text-sm font-semibold mb-2">
-                        <span style={{ color: "#475569" }}>🎯 Phong độ (7 ngày qua)</span>
-                        <span style={{ color: "#3B82F6" }}>
-                          {dashboardData.levelUpProgress.current7DayAccuracy}% / {dashboardData.levelUpProgress.required7DayAccuracy}%
-                        </span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-5 h-5 text-amber-500" />
+                        <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>Vũ Trụ Giải Trí VIP</h3>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-amber-500 uppercase tracking-wide">Premium</span>
                       </div>
-                      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${Math.min(100, (dashboardData.levelUpProgress.current7DayAccuracy / dashboardData.levelUpProgress.required7DayAccuracy) * 100)}%` }}
-                        />
-                      </div>
+                      <p className="text-sm text-gray-500 mb-5 max-w-md">
+                        Khám phá câu chuyện chữa lành và dự đoán vận mệnh hôm nay. Ôn lại các từ vựng đã lưu một cách thư giãn nhất!
+                      </p>
+
+                      <PremiumGuard isPremium={isPremium}>
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => navigate("/vip-entertainment")}
+                          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg flex items-center gap-2"
+                          style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
+                        >
+                          <Crown className="w-4 h-4" />
+                          Khám phá ngay
+                        </motion.button>
+                      </PremiumGuard>
+
+                    </div>
+                    <div className="hidden sm:flex w-24 h-24 rounded-full bg-amber-50 items-center justify-center">
+                      <Sparkles className="w-10 h-10 text-amber-400" />
                     </div>
                   </div>
                 </div>
               </motion.div>
-            )}
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="rounded-3xl p-1 relative overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
-            >
-              <div className="bg-white rounded-[22px] p-6 h-full flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -mr-10 -mt-10 opacity-50 pointer-events-none" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-5 h-5 text-amber-500" />
-                      <h3 className="font-bold text-lg" style={{ color: "#1E293B" }}>Vũ Trụ Giải Trí VIP</h3>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-amber-500 uppercase tracking-wide">Premium</span>
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
+                className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+              >
+                <div className="text-center mb-5">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3"
+                    style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}>
+                    {getInitials(userFullName)}
+                  </div>
+                  <div className="font-bold" style={{ color: "#1E293B" }}>{userFullName}</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>{userEmail}</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Cấp độ", value: displayLevel, icon: "🎯" },
+                    { label: "Streak", value: `${dashboardData.streakDays} ngày`, icon: "🔥" },
+                    { label: "Số nhiệm vụ", value: `${dashboardData.dailyMissionCount}`, icon: "✅" },
+                    { label: "Điểm XP", value: dashboardData.totalXP.toLocaleString(), icon: "⭐" },
+                  ].map((stat) => (
+                    <div key={stat.label} className="p-3 rounded-2xl text-center" style={{ background: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+                      <div className="text-lg mb-0.5">{stat.icon}</div>
+                      <div className="text-sm font-bold" style={{ color: "#1E293B" }}>{stat.value}</div>
+                      <div className="text-xs" style={{ color: "#94A3B8" }}>{stat.label}</div>
                     </div>
-                    <p className="text-sm text-gray-500 mb-5 max-w-md">
-                      Khám phá câu chuyện chữa lành và dự đoán vận mệnh hôm nay. Ôn lại các từ vựng đã lưu một cách thư giãn nhất!
-                    </p>
-
-                    <PremiumGuard isPremium={isPremium}>
-                      <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => navigate("/vip-entertainment")}
-                        className="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg flex items-center gap-2"
-                        style={{ background: "linear-gradient(135deg, #F59E0B, #EA580C)" }}
-                      >
-                        <Crown className="w-4 h-4" />
-                        Khám phá ngay
-                      </motion.button>
-                    </PremiumGuard>
-
-                  </div>
-                  <div className="hidden sm:flex w-24 h-24 rounded-full bg-amber-50 items-center justify-center">
-                    <Sparkles className="w-10 h-10 text-amber-400" />
-                  </div>
+                  ))}
                 </div>
-              </div>
-            </motion.div>
-          </div>
+              </motion.div>
 
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
-              className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
-            >
-              <div className="text-center mb-5">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3"
-                  style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}>
-                  {getInitials(userFullName)}
-                </div>
-                <div className="font-bold" style={{ color: "#1E293B" }}>{userFullName}</div>
-                <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>{userEmail}</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Cấp độ", value: dashboardData.currentLevel, icon: "🎯" },
-                  { label: "Streak", value: `${dashboardData.streakDays} ngày`, icon: "🔥" },
-                  { label: "Số nhiệm vụ", value: `${dashboardData.dailyMissionCount}`, icon: "✅" },
-                  { label: "Điểm XP", value: dashboardData.totalXP.toLocaleString(), icon: "⭐" },
-                ].map((stat) => (
-                  <div key={stat.label} className="p-3 rounded-2xl text-center" style={{ background: "#F8FAFC", border: "1px solid #F1F5F9" }}>
-                    <div className="text-lg mb-0.5">{stat.icon}</div>
-                    <div className="text-sm font-bold" style={{ color: "#1E293B" }}>{stat.value}</div>
-                    <div className="text-xs" style={{ color: "#94A3B8" }}>{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
-              className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
-            >
-              <h3 className="font-bold mb-4" style={{ color: "#1E293B" }}>Truy cập nhanh</h3>
-              <div className="space-y-2">
-                {[
-                  { icon: Map, label: "Bản đồ kiến thức", path: "/knowledge-map", color: "#4F46E5" },
-                  { icon: Target, label: "Bài đánh giá năng lực", path: "/select-level", color: "#10B981" },
-                ].map((item) => (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
+                className="bg-white rounded-3xl p-6" style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+              >
+                <h3 className="font-bold mb-4" style={{ color: "#1E293B" }}>Truy cập nhanh</h3>
+                <div className="space-y-2">
                   <motion.button
-                    key={item.label}
                     whileHover={{ x: 4, background: "#F8FAFC" }}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => navigate("/knowledge-map")}
                     className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all"
                   >
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}15` }}>
-                      <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `#4F46E515` }}>
+                      <Map className="w-4 h-4" style={{ color: "#4F46E5" }} />
                     </div>
-                    <span className="text-sm font-medium flex-1" style={{ color: "#1E293B" }}>{item.label}</span>
+                    <span className="text-sm font-medium flex-1" style={{ color: "#1E293B" }}>Bản đồ kiến thức</span>
                     <ChevronRight className="w-4 h-4" style={{ color: "#94A3B8" }} />
                   </motion.button>
-                ))}
-              </div>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}
-              className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)", border: "1px solid #FED7AA" }}
-            >
-              <div className="text-xl mb-2">💡</div>
-              <p className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
-                <strong>Mẹo học tập:</strong> Ôn tập đều đặn 15 phút mỗi ngày hiệu quả hơn học dồn 2 giờ một lần nhờ thuật toán <strong>Spaced Repetition</strong>.
-              </p>
-            </motion.div>
+                  <motion.button
+                    whileHover={{ x: 4, background: "#F8FAFC" }}
+                    onClick={handlePlacementTestRoute}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `#10B98115` }}>
+                      <Target className="w-4 h-4" style={{ color: "#10B981" }} />
+                    </div>
+                    <span className="text-sm font-medium flex-1" style={{ color: "#1E293B" }}>Bài đánh giá {activeSkill === "WRITING" ? "Writing" : "Reading"}</span>
+                    <ChevronRight className="w-4 h-4" style={{ color: "#94A3B8" }} />
+                  </motion.button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}
+                className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)", border: "1px solid #FED7AA" }}
+              >
+                <div className="text-xl mb-2">💡</div>
+                <p className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
+                  <strong>Mẹo học tập:</strong> Ôn tập đều đặn 15 phút mỗi ngày hiệu quả hơn học dồn 2 giờ một lần nhờ thuật toán <strong>Spaced Repetition</strong>.
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>

@@ -4,7 +4,8 @@ export interface UserProfileResponse {
   email: string;
   fullName: string;
   totalXp: number;
-  currentLevel: Level;
+  currentLevel: Level; 
+  writingCurrentLevel?: Level;
   premium: boolean;
   currentPackageName: string | null;
   premiumEndDate: string | null;
