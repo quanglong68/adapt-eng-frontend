@@ -37,6 +37,15 @@ apiClient.interceptors.response.use(
       // 2. Phép thuật đóng băng: Dừng tất cả mọi luồng code đang chờ API này
       return new Promise(() => {}); 
     }
+
+    // Riêng môn Writing chưa có Level -> đưa sang flow thi Writing Placement Test
+    // (LevelGuardModal đọc event.detail.skill để chọn đúng kỳ thi)
+    if (errorMessage === "REQUIRE_WRITING_PLACEMENT_TEST") {
+      window.dispatchEvent(new CustomEvent("REQUIRE_PLACEMENT_TEST", {
+        detail: { skill: "WRITING" }
+      }));
+      return new Promise(() => {});
+    }
     
     // Xử lý luôn lỗi hết hạn Token (401) để tự động văng ra ngoài màn hình Đăng nhập
     if (error.response?.status === 401) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Crown, Loader2, Mail, Star, Trophy, ArrowLeft, Clock } from "lucide-react";
+import { Crown, Loader2, Mail, Star, Trophy, ArrowLeft, Clock, History, ChevronRight } from "lucide-react";
 import { userService } from "../services/user.service";
 import { UserProfileResponse } from "../types/user.type";
 import { getLevelDisplay, LearningTrack } from "../types/common.type";
@@ -140,6 +140,26 @@ export function UserProfile() {
             </div>
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="bg-white rounded-3xl overflow-hidden"
+          style={{ border: "1px solid #F1F5F9", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}
+        >
+          <button
+            onClick={() => navigate("/toeic/writing/practice-history")}
+            className="w-full flex items-center gap-4 p-6 text-left transition-colors hover:bg-slate-50"
+          >
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "#FCE7F3" }}>
+              <History className="w-7 h-7 text-pink-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold" style={{ color: "#1E293B" }}>Lịch sử luyện Writing</p>
+              <p className="text-sm text-gray-500">Xem lại các bài luyện Writing Part 1 hàng ngày của bạn</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+          </button>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}

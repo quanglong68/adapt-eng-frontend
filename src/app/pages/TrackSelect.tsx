@@ -22,9 +22,14 @@ export function TrackSelect() {
         try {
             // Gửi xuống Backend
             await userService.setLearningTrack(selected);
-            // Chuyển sang trang chọn trình độ Level
-            localStorage.setItem('learningTrack', selected); // Lưu vào localStorage để trang sau lấy ra
-            navigate("/select-level");
+            localStorage.setItem('learningTrack', selected);
+
+            // ĐIỀU HƯỚNG THÔNG MINH
+            if (selected === "TOEIC") {
+                navigate("/select-skill"); // Nếu TOEIC -> Qua trang chọn Kỹ năng
+            } else {
+                navigate("/select-level"); // Nếu khác -> Qua thẳng trang chọn Level cũ
+            }
         } catch (error) {
             console.error("Lỗi cập nhật lộ trình:", error);
         } finally {
