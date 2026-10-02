@@ -69,7 +69,8 @@ export function LevelSelectTest() {
 
     // ĐIỀU HƯỚNG THÔNG MINH TÙY THUỘC VÀO MODE
     if (isWritingMode) {
-      navigate(`/toeic/writing/test/${selectedLevel}`);
+      // Bài thi Writing hỗn hợp (3 Part 1 + Part 2 Email + Part 3 Essay)
+      navigate(`/toeic/writing/combined-test/${selectedLevel}`);
     } else {
       // Luồng Đọc/Nghe cũ của bạn
       if (currentTrack === "TOEIC") {

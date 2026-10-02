@@ -86,3 +86,46 @@ export interface DailyWritingPracticeHistoryResponse {
   reviewJson: string;     // Chuỗi JSON chứa WritingQuestionReview[]
   questionsJson: string;  // Chuỗi JSON chứa WritingQuestion[]
 }
+
+// --- SESSION HỖN HỢP 3xP1 + P2 + P3 ---
+export interface WritingPart23Question {
+  questionId: number;
+  toeicPart: "WRITING_PART_1" | "WRITING_PART_2" | "WRITING_PART_3";
+  imageUrl?: string | null;
+  givenWords?: string | null;
+  knowledgeItemId?: string | null;
+  requiredGrammar?: string | null;
+  emailFrom?: string | null;
+  emailTo?: string | null;
+  emailDate?: string | null;
+  emailSubject?: string | null;
+  emailBody?: string | null;
+  directions?: string | null;
+  essayType?: string | null;
+  essayQuestion?: string | null;
+  // Ngữ pháp SM-2 bắt buộc dùng (P2 tối đa 2, P3 tối đa 5, P1/Test rỗng)
+  requiredConstraints: string[];
+}
+
+export interface WritingPart23SessionResponse {
+  recordId: number;
+  status: string;
+  testType: string;
+  questions: WritingPart23Question[];
+  savedAnswers?: Record<number, string> | null;
+}
+
+export interface WritingPart23ResultResponse {
+  totalQuestions: number;
+  totalScore: number;
+  maxScore: number;
+  part1Score: number;
+  part2Score: number;
+  part3Score: number;
+  reviewList: WritingQuestionReview[];
+  validEffort: boolean;
+  earnedXp: number;
+  // Chỉ luồng Test trả về (đánh giá xếp lớp), Daily là null
+  recommendedLevel: Level | null;
+  passedThreshold: boolean | null;
+}

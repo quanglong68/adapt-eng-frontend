@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Brain } from "lucide-react";
 
-export function MissionStrip({ dailyMissionCount }: { dailyMissionCount: number }) {
+export function MissionStrip({ dailyMissionCount, skillLabel }: { dailyMissionCount: number; skillLabel?: string }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
@@ -15,7 +15,7 @@ export function MissionStrip({ dailyMissionCount }: { dailyMissionCount: number 
           <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600 mb-1">Nhiệm vụ hôm nay</p>
           <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Đã đến lúc ôn tập!</h2>
           <p className="text-sm text-slate-500 mt-1">
-            <strong className="text-slate-900">{dailyMissionCount} chủ điểm</strong> đang chờ bạn xử lý bằng Spaced Repetition.
+            <strong className="text-slate-900">{dailyMissionCount} chủ điểm{skillLabel ? ` ${skillLabel}` : ""}</strong> đang chờ bạn xử lý bằng Spaced Repetition.
           </p>
         </div>
       </div>

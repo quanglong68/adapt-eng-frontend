@@ -99,29 +99,19 @@ export function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [dashData, profileData, weaknessData] = await Promise.all([
+        const [dashData, profileData] = await Promise.all([
           dashboardService.getSummary(),
           userService.getProfile(),
-          deepDiveService.getRecommendations().catch(() => [])
         ]);
 
         setDashboardData(dashData);
         setIsPremium(profileData.premium);
-        setWeaknesses(weaknessData);
 
         // CẬP NHẬT CẢ 2 LEVEL TỪ CHUẨN API PROFILE 
         setReadingLevel(profileData.currentLevel || null);
         setWritingLevel(profileData.writingCurrentLevel || null);
 
         const initialStates: Record<string, { status: DeepDiveStatus, sessionId?: string }> = {};
-        weaknessData.forEach((item) => {
-          if (item.activeSessionId && item.activeSessionStatus) {
-            initialStates[getUniqueKey(item)] = {
-              status: item.activeSessionStatus as DeepDiveStatus,
-              sessionId: item.activeSessionId
-            };
-          }
-        });
         setDeepDiveStates(initialStates);
 
         setUserFullName(profileData.fullName);
@@ -141,6 +131,24 @@ export function Dashboard() {
     };
     fetchData();
   }, [navigate]);
+
+  // Điểm yếu tách theo tab kỹ năng: Writing lấy nhóm WRITING_PART_1/2/3, còn lại lấy nhóm Reading.
+  useEffect(() => {
+    const skill = activeSkill === "WRITING" ? "WRITING" : "READING";
+    deepDiveService.getRecommendations(skill).then((weaknessData) => {
+      setWeaknesses(weaknessData);
+      const initialStates: Record<string, { status: DeepDiveStatus, sessionId?: string }> = {};
+      weaknessData.forEach((item) => {
+        if (item.activeSessionId && item.activeSessionStatus) {
+          initialStates[getUniqueKey(item)] = {
+            status: item.activeSessionStatus as DeepDiveStatus,
+            sessionId: item.activeSessionId
+          };
+        }
+      });
+      setDeepDiveStates(initialStates);
+    }).catch(() => setWeaknesses([]));
+  }, [activeSkill]);
 
   const handleConfirmGenerate = async () => {
     if (!modalState.item) return;
@@ -233,7 +241,8 @@ export function Dashboard() {
     if (currentTrack === "TOEIC") {
       // Skill Writing có lộ trình luyện tập riêng, không dùng chung với Reading & Nghe
       if (activeSkill === "WRITING") {
-        navigate("/toeic/writing/practice");
+        // Session hỗn hợp (3 Part 1 + Part 2 Email + Part 3 Essay)
+        navigate("/toeic/writing/combined-practice");
       } else {
         navigate("/toeic/practice");
       }
@@ -286,6 +295,21 @@ export function Dashboard() {
   // Đã có level = đã làm bài test → ẩn nút "Bài đánh giá"
   const hasDoneLevel = activeSkill === "WRITING" ? !!writingLevel : !!readingLevel;
 
+  // Số liệu nhiệm vụ tách theo tab: Writing dùng breakdown P1/P2/P3, Reading dùng số riêng.
+  // BE cũ chưa trả field mới (undefined) → dùng tổng như trước và ẨN chips để khỏi hiện số 0 gây hiểu lầm.
+  const isWritingTab = activeSkill === "WRITING";
+  const hasBreakdown = dashboardData.writingMissionCount != null && dashboardData.readingMissionCount != null;
+  const heroMissionCount = !hasBreakdown
+    ? dashboardData.dailyMissionCount
+    : isWritingTab
+      ? dashboardData.writingMissionCount!
+      : dashboardData.readingMissionCount!;
+  const writingPartCounts = [
+    { label: "Part 1 · Mô tả tranh", count: dashboardData.writingPart1Count ?? 0 },
+    { label: "Part 2 · Email", count: dashboardData.writingPart2Count ?? 0 },
+    { label: "Part 3 · Essay", count: dashboardData.writingPart3Count ?? 0 },
+  ];
+
   const modalDeepDiveState = modalState.item ? deepDiveStates[getUniqueKey(modalState.item)] : undefined;
 
   return (
@@ -334,10 +358,10 @@ export function Dashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[100] bg-white/70 backdrop-blur-md flex flex-col items-center justify-center px-6"
+              className="absolute inset-x-0 top-0 z-[100] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center px-6 py-8 border-b border-slate-200 shadow-sm"
             >
-              <div className="bg-white border border-slate-200 max-w-md w-full text-center px-8 py-10">
-                <div className={`w-14 h-14 flex items-center justify-center mx-auto mb-5 ${activeSkill === "WRITING" ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"}`}>
+              <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full text-center px-6 md:px-10 py-8 shadow-sm">
+                <div className={`w-14 h-14 flex items-center justify-center mx-auto mb-5 rounded-2xl ${activeSkill === "WRITING" ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"}`}>
                   <Lock className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Tính năng bị khóa</h3>
@@ -346,7 +370,7 @@ export function Dashboard() {
                 </p>
                 <button
                   onClick={handlePlacementTestRoute}
-                  className={`w-full py-3 font-semibold text-sm text-white transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2 ${activeSkill === "WRITING" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all duration-300 hover:scale-[1.02] ${activeSkill === "WRITING" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
                 >
                   <Target className="w-4 h-4" /> Làm bài Đánh giá ngay
                 </button>
@@ -361,7 +385,8 @@ export function Dashboard() {
           <DashboardHero
             userFullName={userFullName}
             activeSkill={activeSkill}
-            dailyMissionCount={dashboardData.dailyMissionCount}
+            dailyMissionCount={heroMissionCount}
+            writingPartCounts={isWritingTab && hasBreakdown ? writingPartCounts : undefined}
             streakDays={dashboardData.streakDays}
             totalXP={dashboardData.totalXP}
             displayLevel={displayLevel}
@@ -370,7 +395,7 @@ export function Dashboard() {
             onPlacementTest={handlePlacementTestRoute}
           />
 
-          <MissionStrip dailyMissionCount={dashboardData.dailyMissionCount} />
+          <MissionStrip dailyMissionCount={heroMissionCount} skillLabel={isWritingTab ? "Writing" : "Reading & Nghe"} />
 
           <VipStrip
             isPremium={isPremium}
@@ -381,6 +406,7 @@ export function Dashboard() {
             weaknesses={weaknesses}
             deepDiveStates={deepDiveStates}
             isPremium={isPremium}
+            activeSkill={activeSkill}
             onOpenModal={(item) => setModalState({ isOpen: true, item })}
             onStartSession={handleStartDeepDiveSession}
           />
@@ -397,6 +423,7 @@ export function Dashboard() {
           <QuickAccessSection
             activeSkill={activeSkill}
             hasDoneLevel={hasDoneLevel}
+            writingLevel={writingLevel}
             onNavigate={handleNavigate}
             onPlacementTest={handlePlacementTestRoute}
           />

@@ -6,6 +6,8 @@ interface DashboardHeroProps {
   userFullName: string;
   activeSkill: SkillType;
   dailyMissionCount: number;
+  // Breakdown theo Part cho tab Writing (undefined = tab Reading, chỉ hiện tổng)
+  writingPartCounts?: { label: string; count: number }[];
   streakDays: number;
   totalXP: number;
   displayLevel: string;
@@ -15,7 +17,7 @@ interface DashboardHeroProps {
 }
 
 export function DashboardHero({
-  userFullName, activeSkill, dailyMissionCount, streakDays, totalXP,
+  userFullName, activeSkill, dailyMissionCount, writingPartCounts, streakDays, totalXP,
   displayLevel, hasDoneLevel, onStartPractice, onPlacementTest,
 }: DashboardHeroProps) {
   return (
@@ -46,10 +48,25 @@ export function DashboardHero({
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut", delay: 0.24 }}
           className="mt-4 text-base md:text-lg text-slate-500 max-w-2xl leading-relaxed"
         >
-          AI phát hiện bạn có <strong className="text-slate-900">{dailyMissionCount} chủ điểm</strong> cần
+          AI phát hiện bạn có <strong className="text-slate-900">{dailyMissionCount} chủ điểm{writingPartCounts ? " Writing" : ""}</strong> cần
           ôn gấp hôm nay. Duy trì streak <strong className="text-slate-900">{streakDays} ngày</strong> để
           đưa kiến thức vào bộ nhớ dài hạn.
         </motion.p>
+        {writingPartCounts && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut", delay: 0.28 }}
+            className="mt-4 flex flex-wrap items-center gap-2"
+          >
+            {writingPartCounts.map((part) => (
+              <span
+                key={part.label}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-white/70 backdrop-blur-md border border-indigo-200/60 rounded-full"
+              >
+                {part.label}: <strong className="tabular-nums">{part.count}</strong>
+              </span>
+            ))}
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut", delay: 0.32 }}
           className="mt-8 flex flex-wrap items-center gap-3"

@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { AlertTriangle, Brain, CheckCircle2, Loader2, Play } from "lucide-react";
 import { DeepDiveRecommendation } from "../../../../entities/deepdive/deepDive.type";
 import { PremiumGuard } from "../../../../shared/ui/PremiumGuard";
+import { SkillType } from "../../../../shared/ui/SkillToggle";
 import { getUniqueKey } from "./deepDiveKeys";
 import { KnowledgeBadge } from "./KnowledgeBadge";
 
@@ -11,11 +12,34 @@ interface WeaknessListProps {
   weaknesses: DeepDiveRecommendation[];
   deepDiveStates: Record<string, { status: DeepDiveStatus; sessionId?: string }>;
   isPremium: boolean;
+  activeSkill: SkillType;
   onOpenModal: (item: DeepDiveRecommendation) => void;
   onStartSession: (sessionId: string) => void;
 }
 
-export function WeaknessList({ weaknesses, deepDiveStates, isPremium, onOpenModal, onStartSession }: WeaknessListProps) {
+// Nhãn Part cho từng điểm yếu (record cũ chưa có toeicPart thì không hiện chip)
+function getPartChip(toeicPart?: string | null): { label: string; className: string } | null {
+  switch (toeicPart) {
+    case "WRITING_PART_1":
+      return { label: "Part 1", className: "text-sky-700 bg-sky-50 border-sky-200" };
+    case "WRITING_PART_2":
+      return { label: "Part 2 · Email", className: "text-indigo-700 bg-indigo-50 border-indigo-200" };
+    case "WRITING_PART_3":
+      return { label: "Part 3 · Essay", className: "text-emerald-700 bg-emerald-50 border-emerald-200" };
+    case "PART_5":
+      return { label: "Part 5", className: "text-slate-600 bg-slate-50 border-slate-200" };
+    case "PART_6":
+      return { label: "Part 6", className: "text-slate-600 bg-slate-50 border-slate-200" };
+    case "PART_7_SINGLE":
+    case "PART_7_MULTIPLE":
+      return { label: "Part 7", className: "text-slate-600 bg-slate-50 border-slate-200" };
+    default:
+      return null;
+  }
+}
+
+export function WeaknessList({ weaknesses, deepDiveStates, isPremium, activeSkill, onOpenModal, onStartSession }: WeaknessListProps) {
+  const isWritingTab = activeSkill === "WRITING";
   return (
     <motion.section
       initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut", delay: 0.26 }}
@@ -25,21 +49,22 @@ export function WeaknessList({ weaknesses, deepDiveStates, isPremium, onOpenModa
         <div className="flex items-center gap-3 mb-2">
           <AlertTriangle className="w-5 h-5 text-rose-500" />
           <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">
-            Top điểm yếu cần khắc phục
+            Top điểm yếu {isWritingTab ? "Writing " : ""}cần khắc phục
           </h2>
           <span className="px-2 py-0.5 text-[10px] font-semibold rounded uppercase tracking-widest text-amber-700 bg-amber-100">VIP</span>
         </div>
-        <p className="text-sm text-slate-500 mb-8">Dựa trên thuật toán AI Spaced Repetition — ôn chuyên sâu từng điểm hổng.</p>
+        <p className="text-sm text-slate-500 mb-8">Dựa trên thuật toán AI Spaced Repetition — ôn chuyên sâu từng điểm hổng{isWritingTab ? " của kỹ năng Viết" : ""}.</p>
 
         {weaknesses.length === 0 ? (
           <div className="flex items-center gap-2 py-10 text-sm text-slate-500">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-            Tuyệt vời! Bạn không có điểm yếu nào ở mức báo động.
+            Tuyệt vời! Bạn không có điểm yếu nào ở mức báo động{isWritingTab ? " ở kỹ năng Viết" : ""}.
           </div>
         ) : (
           <div className="divide-y divide-slate-200/60 border-y border-slate-200/60">
             {weaknesses.map((item, index) => {
               const state = deepDiveStates[getUniqueKey(item)];
+              const partChip = getPartChip(item.toeicPart);
 
               return (
                 <motion.div
@@ -55,10 +80,17 @@ export function WeaknessList({ weaknesses, deepDiveStates, isPremium, onOpenModa
                       <h4 className="font-semibold text-slate-900 truncate">
                         <KnowledgeBadge item={item} />
                       </h4>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Mức độ hổng kiến thức:{" "}
-                        <span className={`font-semibold ${item.difficultyLevel === 'Rất cao' ? 'text-rose-600' : 'text-orange-600'}`}>
-                          {item.difficultyLevel}
+                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                        {partChip && (
+                          <span className={`font-semibold px-1.5 py-0.5 rounded text-[11px] uppercase border ${partChip.className}`}>
+                            {partChip.label}
+                          </span>
+                        )}
+                        <span>
+                          Mức độ hổng kiến thức:{" "}
+                          <span className={`font-semibold ${item.difficultyLevel === 'Rất cao' ? 'text-rose-600' : 'text-orange-600'}`}>
+                            {item.difficultyLevel}
+                          </span>
                         </span>
                       </p>
                     </div>

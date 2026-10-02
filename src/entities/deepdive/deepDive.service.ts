@@ -10,9 +10,11 @@ import {
 import { ToeicPassageResponse } from '../toeic/toeic.type';
 
 export const deepDiveService = {
-  // 1. Lấy Top 10 điểm yếu
-  getRecommendations: async (): Promise<DeepDiveRecommendation[]> => {
-    const response = await apiClient.get<DeepDiveRecommendation[]>('/vip/deep-dive/recommendations');
+  // 1. Lấy Top 10 điểm yếu (skill = WRITING | READING | ALL, mặc định ALL giữ tương thích)
+  getRecommendations: async (skill?: "WRITING" | "READING" | "ALL"): Promise<DeepDiveRecommendation[]> => {
+    const response = await apiClient.get<DeepDiveRecommendation[]>('/vip/deep-dive/recommendations', {
+      params: skill ? { skill } : undefined,
+    });
     return response.data;
   },
 
