@@ -38,6 +38,11 @@ export const vipService = {
     return response.data;
   },
 
+  requestEntertainmentGeneration: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post<{ success: boolean; message: string }>('/vip/entertainment/generate');
+    return response.data;
+  },
+
   getEntertainmentStatus: async (): Promise<VipEntertainmentStatusInfo> => {
     const response = await apiClient.get<VipEntertainmentStatusInfo>('/vip/entertainment-status');
     return response.data;

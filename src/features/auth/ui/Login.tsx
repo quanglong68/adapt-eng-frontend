@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Eye, EyeOff, Mail, Lock, BookOpen, Brain, Star, Zap, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, BookOpen, Brain, Star, Zap, User, Target, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../../entities/session/auth.service";
 import { STORAGE_KEYS } from "../../../shared/lib/storageKeys";
@@ -64,54 +64,53 @@ export function Login() {
     };
 
     return (
-        <div className="min-h-screen flex" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
-            {/* Left Panel (Giữ nguyên giao diện đẹp của bạn) */}
-            <div
-                className="w-1/2 relative overflow-hidden flex flex-col items-center justify-center p-14"
-                style={{ background: "linear-gradient(145deg, #4338CA 0%, #6D28D9 60%, #7C3AED 100%)" }}
-            >
-                {/* Decorative circles */}
-                <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full opacity-10" style={{ background: "#fff" }} />
-                <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full opacity-10" style={{ background: "#fff" }} />
-                <div className="absolute top-1/3 left-8 w-24 h-24 rounded-full opacity-10" style={{ background: "#fff" }} />
+        <div className="min-h-screen flex bg-slate-50">
+            {/* Left Panel — Hero immersive */}
+            <div className="hidden lg:flex w-1/2 relative overflow-hidden flex-col items-center justify-center p-14 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700">
+                {/* Glow blur */}
+                <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-purple-400/30 blur-3xl" />
+                <div className="pointer-events-none absolute top-1/3 left-8 h-24 w-24 rounded-full bg-white/10 blur-xl" />
 
                 {/* Floating decorative cards */}
                 <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                    className="absolute top-16 right-16 px-4 py-2 rounded-xl text-xs font-semibold"
-                    style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="absolute top-16 right-16 flex items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md"
                 >
-                    🎯 Level: B2 Unlocked!
+                    <Target className="h-4 w-4 text-emerald-300" />
+                    Level: B2 Unlocked!
                 </motion.div>
                 <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }}
-                    className="absolute bottom-32 left-12 px-4 py-2 rounded-xl text-xs font-semibold"
-                    style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.65 }}
+                    className="absolute bottom-32 left-12 flex items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md"
                 >
-                    🔥 Streak: 7 ngày!
+                    <Flame className="h-4 w-4 text-amber-300" />
+                    Streak: 7 ngày!
                 </motion.div>
 
                 {/* Logo */}
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.5 }}
                     className="flex items-center gap-3 mb-10"
                 >
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}>
-                        <BookOpen className="w-6 h-6 text-white" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/20 backdrop-blur-md">
+                        <BookOpen className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-3xl font-bold text-white tracking-tight">AdaptEng</span>
+                    <span className="text-3xl font-bold tracking-tight text-white">AdaptEng</span>
                 </motion.div>
 
                 {/* Illustration */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="w-72 h-72"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.15 }}
+                    className="h-72 w-72"
                 >
                     <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="60" y="80" width="180" height="130" rx="14" fill="rgba(255,255,255,0.15)" />
@@ -141,61 +140,60 @@ export function Login() {
                 </motion.div>
 
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
                     className="text-center mt-2"
                 >
-                    <h2 className="text-2xl font-bold text-white mb-2">Học tiếng Anh thông minh</h2>
-                    <p style={{ color: "rgba(199,210,254,0.9)" }} className="text-sm">AI cá nhân hóa lộ trình học tập riêng cho bạn</p>
+                    <h2 className="mb-2 text-3xl font-bold tracking-tight text-white">Học tiếng Anh thông minh</h2>
+                    <p className="text-sm text-indigo-100">AI cá nhân hóa lộ trình học tập riêng cho bạn</p>
                 </motion.div>
 
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.45 }}
                     className="flex gap-6 mt-6"
                 >
                     {features.map(({ icon: Icon, text }) => (
-                        <div key={text} className="flex items-center gap-2" style={{ color: "rgba(199,210,254,0.9)" }}>
-                            <Icon className="w-4 h-4" />
-                            <span className="text-sm">{text}</span>
+                        <div key={text} className="flex items-center gap-2 text-indigo-100">
+                            <Icon className="h-4 w-4" />
+                            <span className="text-sm font-medium">{text}</span>
                         </div>
                     ))}
                 </motion.div>
             </div>
 
-            {/* Right Panel - NƠI XỬ LÝ FORM */}
-            <div className="w-1/2 flex items-center justify-center p-14" style={{ background: "#F9FAFB" }}>
+            {/* Right Panel - Form */}
+            <div className="flex w-full lg:w-1/2 items-center justify-center bg-white p-8 sm:p-14">
                 <motion.div
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
                     className="w-full max-w-md"
                 >
-                    <div className="flex items-center gap-2 mb-8">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#4F46E5" }}>
-                            <BookOpen className="w-4 h-4 text-white" />
+                    <div className="mb-8 flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
+                            <BookOpen className="h-4 w-4 text-white" />
                         </div>
-                        <span className="text-xl font-bold" style={{ color: "#1E293B" }}>AdaptEng</span>
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "#EEF2FF", color: "#4F46E5" }}>Beta</span>
+                        <span className="text-xl font-bold text-slate-900">AdaptEng</span>
+                        <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600">Beta</span>
                     </div>
 
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: "#1E293B" }}>Chào mừng trở lại! 👋</h1>
-                    <p className="mb-8 text-sm" style={{ color: "#64748B" }}>
+                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-slate-900">Chào mừng trở lại!</h1>
+                    <p className="mb-8 text-sm text-slate-500">
                         Bắt đầu hành trình chinh phục tiếng Anh của bạn.
                     </p>
 
                     {/* Tab switcher */}
-                    <div className="flex gap-1 mb-7 p-1 rounded-xl" style={{ background: "#E5E7EB" }}>
+                    <div className="mb-7 flex gap-1 rounded-xl bg-slate-100 p-1">
                         {(["login", "register"] as const).map((t) => (
                             <motion.button
                                 key={t}
                                 type="button"
                                 onClick={() => { setTab(t); setErrorMsg(""); }}
                                 layout
-                                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all relative"
-                                style={{ color: tab === t ? "#4F46E5" : "#64748B" }}
+                                className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${tab === t ? "text-indigo-600" : "text-slate-500 hover:text-slate-900"}`}
                             >
                                 {tab === t && (
                                     <motion.div
@@ -213,7 +211,7 @@ export function Login() {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-100"
+                            className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600"
                         >
                             {errorMsg}
                         </motion.div>
@@ -225,13 +223,14 @@ export function Login() {
                         {/* Trường Họ tên chỉ hiện khi Đăng ký */}
                         {tab === "register" && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
+                                initial={{ opacity: 0, y: 24 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
                                 className="mb-4"
                             >
-                                <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1E293B" }}>Họ và tên</label>
+                                <label className="mb-1.5 block text-sm font-semibold text-slate-900">Họ và tên</label>
                                 <div className="relative">
-                                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: focused === "name" ? "#4F46E5" : "#94A3B8" }} />
+                                    <User className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${focused === "name" ? "text-indigo-600" : "text-slate-400"}`} />
                                     <input
                                         type="text"
                                         value={fullName}
@@ -240,13 +239,7 @@ export function Login() {
                                         onBlur={() => setFocused(null)}
                                         placeholder="Nguyễn Văn A"
                                         required={tab === "register"} // Bắt buộc nhập nếu ở tab đăng ký
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
-                                        style={{
-                                            background: "#fff",
-                                            border: focused === "name" ? "2px solid #4F46E5" : "2px solid #E5E7EB",
-                                            color: "#1E293B",
-                                            boxShadow: focused === "name" ? "0 0 0 4px rgba(79,70,229,0.08)" : "none",
-                                        }}
+                                        className={`w-full rounded-xl border-2 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 ${focused === "name" ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-slate-200 hover:border-slate-300"}`}
                                     />
                                 </div>
                             </motion.div>
@@ -254,9 +247,9 @@ export function Login() {
 
                         {/* Email */}
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1E293B" }}>Email</label>
+                            <label className="mb-1.5 block text-sm font-semibold text-slate-900">Email</label>
                             <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: focused === "email" ? "#4F46E5" : "#94A3B8" }} />
+                                <Mail className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${focused === "email" ? "text-indigo-600" : "text-slate-400"}`} />
                                 <input
                                     type="email"
                                     value={email}
@@ -265,27 +258,21 @@ export function Login() {
                                     onBlur={() => setFocused(null)}
                                     placeholder="email@example.com"
                                     required
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
-                                    style={{
-                                        background: "#fff",
-                                        border: focused === "email" ? "2px solid #4F46E5" : "2px solid #E5E7EB",
-                                        color: "#1E293B",
-                                        boxShadow: focused === "email" ? "0 0 0 4px rgba(79,70,229,0.08)" : "none",
-                                    }}
+                                    className={`w-full rounded-xl border-2 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 ${focused === "email" ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-slate-200 hover:border-slate-300"}`}
                                 />
                             </div>
                         </div>
 
                         {/* Password */}
                         <div className="mb-6">
-                            <div className="flex justify-between mb-1.5">
-                                <label className="text-sm font-semibold" style={{ color: "#1E293B" }}>Mật khẩu</label>
+                            <div className="mb-1.5 flex justify-between">
+                                <label className="text-sm font-semibold text-slate-900">Mật khẩu</label>
                                 {tab === "login" && (
-                                    <button type="button" className="text-xs font-semibold" style={{ color: "#4F46E5" }}>Quên mật khẩu?</button>
+                                    <button type="button" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Quên mật khẩu?</button>
                                 )}
                             </div>
                             <div className="relative">
-                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: focused === "pass" ? "#4F46E5" : "#94A3B8" }} />
+                                <Lock className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${focused === "pass" ? "text-indigo-600" : "text-slate-400"}`} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={password}
@@ -294,21 +281,14 @@ export function Login() {
                                     onBlur={() => setFocused(null)}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full pl-10 pr-12 py-3 rounded-xl text-sm outline-none transition-all"
-                                    style={{
-                                        background: "#fff",
-                                        border: focused === "pass" ? "2px solid #4F46E5" : "2px solid #E5E7EB",
-                                        color: "#1E293B",
-                                        boxShadow: focused === "pass" ? "0 0 0 4px rgba(79,70,229,0.08)" : "none",
-                                    }}
+                                    className={`w-full rounded-xl border-2 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 ${focused === "pass" ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-slate-200 hover:border-slate-300"}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors focus:outline-none"
-                                    style={{ color: "#94A3B8" }}
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-900 focus:outline-none"
                                 >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
                         </div>
@@ -317,17 +297,11 @@ export function Login() {
                         <motion.button
                             type="submit"
                             disabled={isLoading}
-                            whileHover={{ scale: isLoading ? 1 : 1.015, boxShadow: isLoading ? "none" : "0 8px 24px rgba(79,70,229,0.35)" }}
                             whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm mb-3 transition-all flex justify-center items-center gap-2"
-                            style={{
-                                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-                                boxShadow: "0 4px 16px rgba(79,70,229,0.3)",
-                                opacity: isLoading ? 0.7 : 1
-                            }}
+                            className="mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 py-3.5 text-sm font-semibold text-white transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-[0_0_20px_rgba(79,70,229,0.4)]"
                         >
                             {isLoading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             ) : (
                                 tab === "login" ? "Đăng nhập" : "Tạo tài khoản"
                             )}
@@ -335,19 +309,17 @@ export function Login() {
                     </form>
 
                     {/* Divider */}
-                    <div className="flex items-center gap-3 my-4">
-                        <div className="flex-1 h-px" style={{ background: "#E5E7EB" }} />
-                        <span className="text-xs" style={{ color: "#94A3B8" }}>hoặc</span>
-                        <div className="flex-1 h-px" style={{ background: "#E5E7EB" }} />
+                    <div className="my-4 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-slate-200" />
+                        <span className="text-xs text-slate-400">hoặc</span>
+                        <div className="h-px flex-1 bg-slate-200" />
                     </div>
 
                     {/* Google button */}
                     <motion.button
                         type="button"
-                        whileHover={{ scale: 1.015, boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-3 transition-all"
-                        style={{ background: "#fff", border: "2px solid #E5E7EB", color: "#1E293B" }}
+                        className="flex w-full items-center justify-center gap-3 rounded-full border-2 border-slate-200 bg-white py-3.5 text-sm font-semibold text-slate-900 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
                     >
                         <svg width="18" height="18" viewBox="0 0 18 18">
                             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4" />
@@ -358,16 +330,16 @@ export function Login() {
                         Đăng nhập bằng Google
                     </motion.button>
 
-                    <p className="text-center mt-5 text-sm" style={{ color: "#64748B" }}>
+                    <p className="mt-5 text-center text-sm text-slate-500">
                         {tab === "login" ? (
                             <>Chưa có tài khoản?{" "}
-                                <button type="button" onClick={() => { setTab("register"); setErrorMsg(""); }} className="font-semibold" style={{ color: "#4F46E5" }}>
+                                <button type="button" onClick={() => { setTab("register"); setErrorMsg(""); }} className="font-semibold text-indigo-600 hover:text-indigo-700">
                                     Đăng ký ngay
                                 </button>
                             </>
                         ) : (
                             <>Đã có tài khoản?{" "}
-                                <button type="button" onClick={() => { setTab("login"); setErrorMsg(""); }} className="font-semibold" style={{ color: "#4F46E5" }}>
+                                <button type="button" onClick={() => { setTab("login"); setErrorMsg(""); }} className="font-semibold text-indigo-600 hover:text-indigo-700">
                                     Đăng nhập
                                 </button>
                             </>

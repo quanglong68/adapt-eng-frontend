@@ -37,7 +37,7 @@ export function GeneralOptionButton({
       whileHover={{ scale: 1.01, boxShadow: theme.hoverShadow }}
       whileTap={{ scale: 0.99 }}
       onClick={onSelect}
-      className="w-full flex items-center gap-4 p-5 rounded-2xl text-left transition-all"
+      className="w-full flex items-center gap-4 p-5 rounded-2xl text-left transition-all hover:bg-slate-100/50"
       style={{
         background: isSelected ? theme.selectedBg : "#fff",
         border: `2px solid ${isSelected ? theme.primary : "#E5E7EB"}`,
@@ -50,12 +50,11 @@ export function GeneralOptionButton({
           scale: isSelected ? 1.08 : 1,
         }}
         transition={{ type: "spring", damping: 14 }}
-        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-        style={{ color: isSelected ? "#fff" : "#64748B" }}
+        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${isSelected ? "text-white" : "text-slate-500"}`}
       >
         {letter}
       </motion.div>
-      <span className="text-base font-medium flex-1" style={{ color: "#1E293B" }}>
+      <span className="text-base font-medium flex-1 text-slate-800">
         {optionText}
       </span>
       <AnimatePresence>

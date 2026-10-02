@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { X, Zap, ArrowLeft, Image as ImageIcon, AlertTriangle } from "lucide-react";
+import { X, Check, Zap, ArrowLeft, Image as ImageIcon, AlertTriangle, Bot } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { WritingPracticeSubmissionResponse, WritingQuestion } from "../../../entities/writing/writing.type";
@@ -13,9 +13,9 @@ export function WritingPracticeReviewMistakes() {
 
     if (!practiceResult || !originalQuestions) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-                <h2 className="text-xl font-bold text-slate-700 mb-4">Không tìm thấy dữ liệu review!</h2>
-                <button onClick={() => navigate("/dashboard")} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6">
+                <h2 className="text-lg font-bold text-slate-700 mb-4">Không tìm thấy dữ liệu review!</h2>
+                <button onClick={() => navigate("/dashboard")} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:-translate-y-1 transition-all duration-300">
                     Quay lại Dashboard
                 </button>
             </div>
@@ -26,13 +26,12 @@ export function WritingPracticeReviewMistakes() {
     const reviewMap = Object.fromEntries(reviews.map(r => [r.questionId, r]));
 
     return (
-        <div className="min-h-screen py-10 px-4 md:px-8" style={{ background: "#F1F5F9", fontFamily: "'Poppins', sans-serif" }}>
+        <div className="min-h-screen py-8 px-4 md:px-6 bg-slate-50">
             <div className="max-w-5xl mx-auto">
-
-                <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex items-start justify-between mb-6 gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">AI Feedback: Writing Part 1</h1>
-                        <p className="text-slate-500 text-sm mt-1 font-medium">
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">AI Feedback: Writing Part 1</h1>
+                        <p className="text-slate-500 text-sm mt-1">
                             Chi tiết điểm và gợi ý sửa lỗi cho {originalQuestions.length} bức ảnh trong buổi luyện tập hôm nay.
                         </p>
                     </div>
@@ -40,13 +39,13 @@ export function WritingPracticeReviewMistakes() {
                         onClick={() => navigate("/toeic/writing/practice-result", {
                             state: { dataResult: practiceResult, originalQuestions: originalQuestions }
                         })}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 hover:bg-slate-50 transition shrink-0 self-end sm:self-auto"
+                        className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-all duration-300 shrink-0"
                     >
                         <X className="w-5 h-5 text-slate-400" />
                     </button>
                 </motion.div>
 
-                <div className="space-y-8">
+                <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                     {originalQuestions.map((q, index) => {
                         const review = reviewMap[q.questionId];
                         if (!review) return null;
@@ -56,31 +55,32 @@ export function WritingPracticeReviewMistakes() {
                         return (
                             <motion.div
                                 key={q.questionId}
-                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}
-                                className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row"
+                                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.08, 0.4), duration: 0.3 }}
+                                className="flex flex-col md:flex-row"
                             >
                                 {/* BÊN TRÁI: ẢNH ĐỀ BÀI */}
-                                <div className="md:w-5/12 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 p-6 flex flex-col justify-center items-center">
-                                    <div className="w-full flex justify-between items-center mb-4">
-                                        <span className="text-xs font-bold px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg">
+                                <div className="md:w-5/12 bg-slate-50/60 border-b md:border-b-0 md:border-r border-slate-100 p-5 flex flex-col justify-center items-center">
+                                    <div className="w-full flex justify-between items-center mb-3">
+                                        <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-full">
                                             Câu {index + 1}
                                         </span>
-                                        <span className={`text-xs font-bold px-3 py-1 rounded-lg ${isPerfect ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${isPerfect ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-rose-50 border-rose-100 text-rose-700"}`}>
+                                            {isPerfect ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                                             {review.correctAnswer}
                                         </span>
                                     </div>
 
                                     {q.imageUrl ? (
-                                        <img src={q.imageUrl} alt={`Câu hỏi ${index + 1}`} className="w-full max-h-[250px] object-cover rounded-xl shadow-sm border border-slate-200" />
+                                        <img src={q.imageUrl} alt={`Câu hỏi ${index + 1}`} className="w-full max-h-[240px] object-cover rounded-xl border border-slate-200" />
                                     ) : (
-                                        <div className="w-full h-[200px] bg-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                                            <ImageIcon className="w-10 h-10" />
+                                        <div className="w-full h-[180px] bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                                            <ImageIcon className="w-8 h-8" />
                                         </div>
                                     )}
 
-                                    <div className="w-full mt-4 flex flex-wrap justify-center gap-2">
+                                    <div className="w-full mt-3 flex flex-wrap justify-center gap-2">
                                         {(q.givenWords || "").split(',').filter(w => w.trim().length > 0).map((w, i) => (
-                                            <span key={i} className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm uppercase">
+                                            <span key={i} className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-full uppercase">
                                                 {w.trim()}
                                             </span>
                                         ))}
@@ -88,13 +88,12 @@ export function WritingPracticeReviewMistakes() {
                                 </div>
 
                                 {/* BÊN PHẢI: FEEDBACK CỦA AI */}
-                                <div className="md:w-7/12 p-6 md:p-8 flex flex-col">
-
-                                    <div className="mb-6">
+                                <div className="md:w-7/12 p-5 md:p-6 flex flex-col">
+                                    <div className="mb-5">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Câu trả lời của bạn</p>
                                         <div className="relative">
-                                            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-full ${isPerfect ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                            <p className={`pl-4 text-base font-medium ${review.userSelectedAnswer ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-full ${isPerfect ? "bg-emerald-500" : "bg-rose-500"}`} />
+                                            <p className={`pl-4 text-[15px] font-medium ${review.userSelectedAnswer ? "text-slate-800" : "text-slate-400 italic"}`}>
                                                 {review.userSelectedAnswer || "Bạn đã bỏ trống câu này."}
                                             </p>
                                         </div>
@@ -102,11 +101,11 @@ export function WritingPracticeReviewMistakes() {
 
                                     {/* Nhắc lại ngữ pháp bắt buộc để học viên hiểu vì sao bị trừ điểm */}
                                     {q.requiredGrammar && (
-                                        <div className="mb-4 inline-flex items-center gap-2 self-start">
-                                            <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-md border border-amber-200 flex items-center gap-1">
+                                        <div className="mb-3 inline-flex items-center gap-2 self-start">
+                                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
                                                 <AlertTriangle className="w-3 h-3" /> Ngữ pháp bắt buộc
                                             </span>
-                                            <span className="text-sm font-semibold text-slate-600">
+                                            <span className="text-sm font-medium text-slate-600">
                                                 {q.requiredGrammar}
                                             </span>
                                         </div>
@@ -114,45 +113,48 @@ export function WritingPracticeReviewMistakes() {
 
                                     {!isPerfect && review.knowledgeName && (
                                         <div className="mb-4 inline-flex items-center gap-2 self-start">
-                                            <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-md border border-amber-200">
+                                            <span className="inline-flex items-center text-xs font-semibold px-2 py-1 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
                                                 Lỗi ngữ pháp
                                             </span>
-                                            <span className="text-sm font-semibold text-slate-600">
+                                            <span className="text-sm font-medium text-slate-600">
                                                 {review.knowledgeName}
                                             </span>
                                         </div>
                                     )}
 
-                                    <div className="rounded-2xl p-5 mt-auto flex flex-col gap-3" style={{ background: "#EEF2FF", border: "1px dashed #C7D2FE" }}>
+                                    <div className="rounded-xl p-4 mt-auto flex flex-col gap-2 bg-emerald-50/60 border border-emerald-100">
                                         <div className="flex items-center gap-2">
-                                            <Zap className="w-5 h-5 text-indigo-600 fill-indigo-600" />
-                                            <span className="text-sm font-bold" style={{ color: "#4F46E5" }}>Giáo viên AI nhận xét</span>
+                                            <span className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
+                                                <Bot className="w-4 h-4 text-white" />
+                                            </span>
+                                            <span className="text-sm font-bold text-emerald-700">Giáo viên AI nhận xét</span>
                                         </div>
-                                        <p className="text-[14px] leading-relaxed" style={{ color: "#3730A3", whiteSpace: "pre-wrap" }}>
+                                        <p className="text-sm leading-relaxed text-emerald-900 whitespace-pre-wrap">
                                             {review.explanation}
                                         </p>
                                     </div>
-
                                 </div>
                             </motion.div>
                         );
                     })}
                 </div>
 
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="text-center mt-10">
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.3 }} className="text-center mt-8">
                     <motion.button
-                        whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/toeic/writing/practice-result", {
                             state: { dataResult: practiceResult, originalQuestions: originalQuestions }
                         })}
-                        className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-white font-semibold"
-                        style={{ background: "linear-gradient(135deg, #4F46E5, #3730A3)", boxShadow: "0 6px 20px rgba(79,70,229,0.3)" }}
+                        className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm text-white font-semibold bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:-translate-y-1 transition-all duration-300"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-4 h-4" />
                         Quay lại bảng điểm
                     </motion.button>
                 </motion.div>
-
+                <div className="flex items-center gap-2 justify-center mt-4 text-xs text-slate-400">
+                    <Zap className="w-3.5 h-3.5" />
+                    AI chấm theo thang 0-3 điểm, câu đạt 3/3 được gắn nhãn hoàn hảo
+                </div>
             </div>
         </div>
     );

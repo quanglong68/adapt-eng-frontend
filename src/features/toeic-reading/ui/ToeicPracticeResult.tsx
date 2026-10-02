@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, CheckCircle2, Eye, AlertTriangle, Flame } from "lucide-react"; // 🚨 Đã thêm AlertTriangle và Flame
+import { ChevronRight, CheckCircle2, Eye, AlertTriangle, Flame, Sprout, Target, CircleAlert, Home } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -38,9 +38,10 @@ export function ToeicPracticeResult() {
 
     if (!practiceResult) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-                <h2 className="text-xl font-bold text-slate-700 mb-4">Không tìm thấy kết quả ôn tập!</h2>
-                <button onClick={() => navigate("/dashboard")} className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6">
+                <h2 className="text-xl font-bold tracking-tight text-slate-900 mb-4">Không tìm thấy kết quả ôn tập!</h2>
+                <button onClick={() => navigate("/dashboard")} className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-sm font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.45)] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]">
+                    <Home className="w-4 h-4" />
                     Quay lại trang chủ
                 </button>
             </div>
@@ -51,15 +52,21 @@ export function ToeicPracticeResult() {
     const accuracyPercentage = practiceResult.totalQuestions > 0 ? (practiceResult.correctAnswers / practiceResult.totalQuestions) * 100 : 0;
 
     return (
-        <div className="min-h-screen py-12 px-8" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
+        <div className="min-h-screen py-12 px-6 bg-slate-50">
             <div className="max-w-2xl mx-auto">
-                {/* 🚨 HEADER THAY ĐỔI THEO TRẠNG THÁI */}
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-                    <div className="text-5xl mb-4">{isValid ? "🌱" : "⚠️"}</div>
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: isValid ? "#1E293B" : "#991B1B" }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="text-center mb-8"
+                >
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 border transition-all duration-300 ${isValid ? "bg-emerald-50 border-emerald-200/60" : "bg-red-50 border-red-200/60"}`}>
+                        {isValid ? <Sprout className="w-7 h-7 text-emerald-600" /> : <AlertTriangle className="w-7 h-7 text-red-500" />}
+                    </div>
+                    <h1 className={`text-3xl font-bold tracking-tight mb-2 ${isValid ? "bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600" : "text-red-700"}`}>
                         {isValid ? "Hoàn thành phiên ôn tập!" : "Phiên ôn tập không hợp lệ!"}
                     </h1>
-                    <p className="text-sm" style={{ color: "#64748B" }}>
+                    <p className="text-sm text-slate-500">
                         {isValid
                             ? "Hệ thống Spaced Repetition đã ghi nhận tiến độ của bạn"
                             : "Phát hiện hành vi bỏ trống đề. Bạn cần đạt tối thiểu 10% để được ghi nhận."}
@@ -67,28 +74,27 @@ export function ToeicPracticeResult() {
                 </motion.div>
 
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
-                    className="bg-white rounded-3xl p-8 mb-6 text-center shadow-xl border border-slate-100"
+                    initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
+                    className="bg-white rounded-3xl p-8 mb-6 text-center shadow-sm border border-slate-200/60 transition-all duration-300"
                 >
                     <div className="flex flex-col items-center justify-center gap-6">
                         <CircularProgress value={practiceResult.correctAnswers} max={practiceResult.totalQuestions} variant="toeic-practice" />
                         <div>
-                            <div className="font-bold text-lg mb-3" style={{ color: "#1E293B" }}>
+                            <div className="font-bold tracking-tight text-lg text-slate-900 mb-3">
                                 Tỷ lệ chính xác: {accuracyPercentage.toFixed(1)}%
                             </div>
 
-                            {/* 🚨 THÔNG BÁO TÍNH ĐIỂM / PHẠT SPAM */}
                             {isValid ? (
                                 <div className="flex flex-col gap-2 items-center">
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200/60 text-emerald-700 transition-all duration-300">
                                         <CheckCircle2 className="w-3.5 h-3.5" /> Đã cập nhật lịch ôn tập
                                     </div>
-                                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold bg-orange-100 text-orange-700">
+                                    <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold bg-orange-50 border border-orange-200/60 text-orange-700 transition-all duration-300">
                                         <Flame className="w-4 h-4 text-orange-500" /> +{earnedXp} XP
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold flex items-start text-left gap-2 max-w-sm mx-auto">
+                                <div className="mt-2 p-3 bg-red-50/80 border border-red-200/60 rounded-2xl text-red-700 text-sm font-semibold flex items-start text-left gap-2 max-w-sm mx-auto transition-all duration-300">
                                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                                     <span>
                                         Điểm của bạn dưới 10%. Hệ thống sẽ <strong>KHÔNG CỘNG XP</strong> và <strong>KHÔNG TÍNH STREAK</strong> cho hôm nay để chống spam!
@@ -99,35 +105,38 @@ export function ToeicPracticeResult() {
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-white rounded-2xl p-4 text-center border border-slate-100">
-                        <div className="text-2xl mb-1">🎯</div>
-                        <div className="font-bold text-base" style={{ color: "#1E293B" }}>{practiceResult.correctAnswers}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>Vững kiến thức</div>
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.45, ease: "easeOut" }}
+                    className="bg-white border border-slate-200/60 rounded-2xl divide-y divide-slate-100 mb-6 transition-all duration-300"
+                >
+                    <div className="flex items-center gap-3 px-5 py-3.5">
+                        <Target className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="text-sm text-slate-500 flex-1">Vững kiến thức</span>
+                        <span className="text-sm font-bold text-slate-900">{practiceResult.correctAnswers} câu</span>
                     </div>
-                    <div className="bg-white rounded-2xl p-4 text-center border border-slate-100">
-                        <div className="text-2xl mb-1">⚠️</div>
-                        <div className="font-bold text-base" style={{ color: "#1E293B" }}>{wrongAnswersCount}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>Cần lưu ý lại</div>
+                    <div className="flex items-center gap-3 px-5 py-3.5">
+                        <CircleAlert className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span className="text-sm text-slate-500 flex-1">Cần lưu ý lại</span>
+                        <span className="text-sm font-bold text-slate-900">{wrongAnswersCount} câu</span>
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="flex flex-col gap-3">
+                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.45, ease: "easeOut" }} className="flex flex-col gap-3">
                     <motion.button
                         whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/toeic/practice-review-mistakes", {
                             state: { dataResult: practiceResult, originalBlocks: originalBlocks }
                         })}
-                        className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all bg-emerald-50 border border-emerald-200 text-emerald-700"
+                        className="w-full py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 text-slate-700 border border-slate-300 hover:bg-white transition-all duration-300"
                     >
                         <Eye className="w-4 h-4" />
                         Xem giải thích chi tiết câu đúng/sai
                     </motion.button>
 
                     <motion.button
-                        whileHover={{ scale: 1.015, boxShadow: "0 10px 32px rgba(16,185,129,0.3)" }} whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/dashboard")}
-                        className="w-full py-4 rounded-2xl text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600"
+                        className="w-full py-3.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.45)] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]"
                     >
                         Quay về Dashboard học tập
                         <ChevronRight className="w-4 h-4" />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"; // THÊM useSearchParams
 
@@ -41,10 +42,17 @@ export function ToeicTestExecution() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
-        <h2 className="text-xl font-bold text-slate-700">Đang chuẩn bị đề thi TOEIC {level}...</h2>
-        <p className="text-slate-500 text-sm mt-2">Đang phân tích cấu trúc 50 câu...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center text-center"
+        >
+          <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mb-4" />
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">Đang chuẩn bị đề thi TOEIC {level}...</h2>
+          <p className="text-slate-500 text-sm mt-2">Đang phân tích cấu trúc 50 câu...</p>
+        </motion.div>
       </div>
     );
   }
@@ -122,17 +130,23 @@ export function ToeicTestExecution() {
       partLabel={currentBlock.toeicPart.replace("_", " ")}
       passageContent={renderPassageContent(currentBlock.passageContent || "", "indigo")}
       questionsContent={
-        <div className="space-y-12">
+        <div className="space-y-10">
           {currentBlock.questions.map((q, idx) => (
-            <div key={q.questionId} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className="text-[15px] font-semibold text-slate-800 mb-5 flex gap-3 leading-relaxed">
-                <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-indigo-100 text-indigo-700 rounded-full text-xs">
+            <motion.div
+              key={q.questionId}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="transition-all duration-300"
+            >
+              <h3 className="text-[15px] font-semibold text-slate-900 mb-4 flex gap-3 leading-relaxed">
+                <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-indigo-50 border border-indigo-200/60 text-indigo-700 rounded-full text-xs font-bold">
                   {idx + 1}
                 </span>
-                {q.content.replace("_____", "_______")}
+                <span>{q.content.replace("_____", "_______")}</span>
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-10 [&>*]:transition-all [&>*]:duration-300 [&>*]:hover:bg-slate-100/50">
                 {q.options.map((opt, optIdx) => (
                   <ToeicOptionButton
                     key={optIdx}
@@ -144,7 +158,7 @@ export function ToeicTestExecution() {
                   />
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       }

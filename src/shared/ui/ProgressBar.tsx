@@ -46,7 +46,7 @@ export function ProgressBar({
           </div>
         )}
       </div>
-      <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "#E5E7EB" }}>
+      <div className="h-2.5 rounded-full overflow-hidden bg-slate-200">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}

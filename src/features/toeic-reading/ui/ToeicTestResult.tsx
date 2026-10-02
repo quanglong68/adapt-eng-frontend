@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye, Home } from "lucide-react";
+import { Bot, ChevronRight, BarChart2, AlertTriangle, CheckCircle2, Eye, Home, PartyPopper, Trophy, Target } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -59,43 +59,49 @@ export function ToeicTestResult() {
     };
 
     return (
-        <div className="min-h-screen py-12 px-6 flex items-center justify-center relative overflow-hidden" style={{ background: "#F9FAFB" }}>
+        <div className="min-h-screen py-12 px-6 flex items-center justify-center relative overflow-hidden bg-slate-50">
             <div className="max-w-xl w-full">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[2rem] p-8 md:p-12 shadow-2xl relative z-10 text-center" style={{ border: "1px solid #F1F5F9" }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-200/60 relative z-10 text-center transition-all duration-300"
+                >
 
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.3 }} className="flex justify-center mb-8">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", delay: 0.2 }} className="flex justify-center mb-6">
                         <CircularProgress value={testResult.correctAnswers} max={testResult.totalQuestions} variant="toeic-test" />
                     </motion.div>
 
-                    <h2 className="text-3xl font-extrabold text-slate-800 mb-4 tracking-tight">
+                    <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 mb-3">
                         {isLevelUpMode ? "Kết Quả Thăng Cấp" : "Đánh giá Năng lực TOEIC"}
                     </h2>
 
                     {/* KHÔNG DÙNG systemMessage NỮA, TỰ XỬ LÝ CHỮ Ở ĐÂY */}
-                    <p className="text-slate-500 text-base mb-8 leading-relaxed px-4">
-                        Độ chính xác: <strong style={{ color: "#4F46E5" }}>{testResult.scorePercentage.toFixed(1)}%</strong>.
+                    <p className="text-slate-500 text-sm mb-8 leading-relaxed px-4">
+                        Độ chính xác: <strong className="text-indigo-600">{testResult.scorePercentage.toFixed(1)}%</strong>.
                         {isLevelUpMode && testResult.passedThreshold && " Quá xuất sắc! Xin chúc mừng bạn."}
                         {isLevelUpMode && !testResult.passedThreshold && " Đừng nản lòng, hãy cố gắng ở lần sau nhé."}
                     </p>
 
-                    <div className="p-5 rounded-2xl mb-8 flex items-start gap-4 text-left" style={{ background: testResult.passedThreshold ? "#EEF2FF" : "#FEF2F2", border: `1px solid ${testResult.passedThreshold ? "#C7D2FE" : "#FECACA"}` }}>
-                        <div className="shrink-0 mt-1">
+                    <div className={`p-5 rounded-2xl mb-6 flex items-start gap-4 text-left transition-all duration-300 ${testResult.passedThreshold ? "bg-indigo-50/80 border border-indigo-200/60" : "bg-red-50/80 border border-red-200/60"}`}>
+                        <div className="shrink-0 mt-0.5">
                             {testResult.passedThreshold ? <CheckCircle2 className="w-6 h-6 text-indigo-600" /> : <AlertTriangle className="w-6 h-6 text-red-500" />}
                         </div>
                         <div>
-                            <h4 className="font-bold text-slate-800 mb-1">
+                            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
+                                {testResult.passedThreshold ? <PartyPopper className="w-4 h-4 text-indigo-600" /> : <AlertTriangle className="w-4 h-4 text-red-500" />}
                                 {isLevelUpMode
-                                    ? (testResult.passedThreshold ? "🎉 Thăng cấp thành công!" : "⚠️ Chưa đạt yêu cầu")
+                                    ? (testResult.passedThreshold ? "Thăng cấp thành công!" : "Chưa đạt yêu cầu")
                                     : (testResult.passedThreshold ? "Hoàn toàn phù hợp!" : "Cần củng cố thêm")
                                 }
                             </h4>
-                            <p className="text-sm" style={{ color: testResult.passedThreshold ? "#4338CA" : "#991B1B" }}>
+                            <p className={`text-sm leading-relaxed ${testResult.passedThreshold ? "text-indigo-700" : "text-red-700"}`}>
                                 {isLevelUpMode
                                     ? (testResult.passedThreshold
                                         ? `Tuyệt vời! Trình độ của bạn đã được nâng lên mức ${testResult.testedLevel}.`
                                         : `Bạn chưa đủ điểm để thăng cấp lên ${testResult.testedLevel}. Hãy ôn tập thêm và thử lại nhé.`)
                                     : <>AI khuyên bạn nên bắt đầu lộ trình học TOEIC ở mức: <br />
-                                        <strong className="text-base mt-1 block">
+                                        <strong className="text-base mt-1 block text-slate-900">
                                             {testResult.recommendedLevel ? getLevelDisplay(testResult.recommendedLevel, "TOEIC") : ""}
                                         </strong></>
                                 }
@@ -103,14 +109,31 @@ export function ToeicTestResult() {
                         </div>
                     </div>
 
+                    <div className="bg-white border border-slate-200/60 rounded-2xl divide-y divide-slate-100 mb-6 text-left transition-all duration-300">
+                        <div className="flex items-center gap-3 px-5 py-3.5">
+                            <Trophy className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <span className="text-sm text-slate-500 flex-1">Số câu đúng</span>
+                            <span className="text-sm font-bold text-slate-900">{testResult.correctAnswers}/{testResult.totalQuestions}</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-5 py-3.5">
+                            <Target className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <span className="text-sm text-slate-500 flex-1">Độ chính xác</span>
+                            <span className="text-sm font-bold text-slate-900">{testResult.scorePercentage.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-5 py-3.5">
+                            <Bot className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <span className="text-sm text-slate-500 flex-1">Mức được gợi ý</span>
+                            <span className="text-sm font-bold text-slate-900">{isLevelUpMode ? testResult.testedLevel : (testResult.recommendedLevel ?? testResult.testedLevel)}</span>
+                        </div>
+                    </div>
+
                     <motion.button
-                        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate("/toeic/test-review-mistakes", {
                             // NHỚ TRUYỀN CỜ MODE ĐI TIẾP ĐỂ KHÔNG BỊ MẤT STATE
                             state: { dataResult: testResult, originalBlocks: originalBlocks, mode: isLevelUpMode ? "level-up" : "normal" }
                         })}
-                        className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 mb-4 transition-all"
-                        style={{ background: "#F1F5F9", color: "#475569" }}
+                        className="w-full py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 mb-3 text-slate-700 border border-slate-300 hover:bg-white transition-all duration-300"
                     >
                         <Eye className="w-4 h-4" />
                         Xem lại đáp án chi tiết
@@ -119,40 +142,37 @@ export function ToeicTestResult() {
                     {/* NẾU LÀ ĐÁNH BOSS, CHỈ HIỆN 1 NÚT VỀ DASHBOARD */}
                     {isLevelUpMode ? (
                         <motion.button
-                            whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
+                            whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                             onClick={() => {
                                 // Cập nhật level mới vào cache máy tính nếu pass
                                 if (testResult.passedThreshold) localStorage.setItem('currentLevel', testResult.testedLevel);
                                 navigate("/dashboard");
                             }}
-                            className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-4 transition-all"
-                            style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}
+                            className="w-full py-3.5 rounded-full text-white font-semibold text-sm flex items-center justify-center gap-2 mb-3 bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:-translate-y-1"
                         >
-                            <Home className="w-5 h-5" />
+                            <Home className="w-4 h-4" />
                             Trở về Dashboard
                         </motion.button>
                     ) : (
                         // NẾU LÀ TEST THƯỜNG, HIỆN NÚT ĐỒNG Ý HỌC
                         <>
                             <motion.button
-                                whileHover={{ scale: 1.02, boxShadow: "0 10px 32px rgba(79,70,229,0.4)" }} whileTap={{ scale: 0.98 }}
+                                whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                                 onClick={() => handleSetLevel(testResult.recommendedLevel!)}
                                 disabled={isSubmitting}
-                                className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-4 transition-all"
-                                style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)", opacity: isSubmitting ? 0.7 : 1 }}
+                                className="w-full py-3.5 rounded-full text-white font-semibold text-sm flex items-center justify-center gap-2 mb-3 bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:-translate-y-1 disabled:opacity-70"
                             >
-                                <Bot className="w-5 h-5" />
+                                <Bot className="w-4 h-4" />
                                 Đồng ý học mức {testResult.recommendedLevel}
-                                <ChevronRight className="w-5 h-5" />
+                                <ChevronRight className="w-4 h-4" />
                             </motion.button>
 
                             {!testResult.passedThreshold && (
                                 <motion.button
-                                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                    whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                                     onClick={() => handleSetLevel(testResult.testedLevel)}
                                     disabled={isSubmitting}
-                                    className="w-full py-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-                                    style={{ background: "transparent", border: "2px solid #E5E7EB", color: "#64748B", opacity: isSubmitting ? 0.7 : 1 }}
+                                    className="w-full py-3.5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 text-slate-700 border border-slate-300 hover:bg-white transition-all duration-300 disabled:opacity-70"
                                 >
                                     <BarChart2 className="w-4 h-4" />
                                     Không, tôi vẫn muốn học mức {testResult.testedLevel}
@@ -164,10 +184,11 @@ export function ToeicTestResult() {
             </div>
 
             <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-                <AlertDialogContent className="rounded-3xl p-6 bg-white border border-slate-100 shadow-xl">
+                <AlertDialogContent className="rounded-3xl p-6 bg-white border border-slate-200/60 shadow-sm">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            🎉 Thiết lập thành công!
+                        <AlertDialogTitle className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                            <PartyPopper className="w-5 h-5 text-indigo-600" />
+                            Thiết lập thành công!
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-slate-500">
                             Mục tiêu TOEIC của bạn đã được cập nhật. Cùng cày cuốc thôi!
@@ -176,7 +197,7 @@ export function ToeicTestResult() {
                     <AlertDialogFooter className="mt-4">
                         <AlertDialogAction
                             onClick={() => navigate("/dashboard")}
-                            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold shadow-md shadow-indigo-200"
+                            className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.4)]"
                         >
                             Đi tới Dashboard
                         </AlertDialogAction>

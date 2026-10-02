@@ -8,7 +8,9 @@ import {
   WritingPracticeSubmissionResponse,
   DailyWritingPracticeHistoryResponse,
   SaveWritingPracticeDraftRequest,
-  WritingPracticeSessionResponse
+  WritingPracticeSessionResponse,
+  WritingPart23SessionResponse,
+  WritingPart23ResultResponse
 } from './writing.type';
 
 export const writingService = {
@@ -52,6 +54,36 @@ export const writingService = {
   // Lịch sử luyện tập Writing
   getPracticeHistory: async (): Promise<DailyWritingPracticeHistoryResponse[]> => {
     const response = await apiClient.get<DailyWritingPracticeHistoryResponse[]>('/writing/practice/history');
+    return response.data;
+  },
+
+  // ===== Session hỗn hợp 3xP1 + P2 + P3 =====
+  startCombinedTest: async (level: Level): Promise<WritingPart23SessionResponse> => {
+    const response = await apiClient.post<WritingPart23SessionResponse>(`/writing/placement-test/combined/start/${level}`);
+    return response.data;
+  },
+
+  submitCombinedTest: async (submissionData: SubmitWritingTestRequest): Promise<WritingPart23ResultResponse> => {
+    const response = await apiClient.post<WritingPart23ResultResponse>('/writing/placement-test/combined/submit', submissionData, { timeout: 120000 });
+    return response.data;
+  },
+
+  getCombinedDailyPractice: async (): Promise<WritingPart23SessionResponse> => {
+    const response = await apiClient.get<WritingPart23SessionResponse>('/writing/combined/practice/daily');
+    return response.data;
+  },
+
+  saveCombinedDraft: async (draftData: SaveWritingPracticeDraftRequest): Promise<void> => {
+    await apiClient.put('/writing/combined/practice/save-draft', draftData);
+  },
+
+  submitCombinedPractice: async (submissionData: SubmitWritingPracticeRequest): Promise<WritingPart23ResultResponse> => {
+    const response = await apiClient.post<WritingPart23ResultResponse>('/writing/combined/practice/submit', submissionData, { timeout: 120000 });
+    return response.data;
+  },
+
+  getCombinedHistory: async (): Promise<DailyWritingPracticeHistoryResponse[]> => {
+    const response = await apiClient.get<DailyWritingPracticeHistoryResponse[]>('/writing/combined/practice/history');
     return response.data;
   },
 };

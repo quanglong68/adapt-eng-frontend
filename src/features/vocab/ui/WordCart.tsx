@@ -106,8 +106,7 @@ export function WordCart({ selectedText, selectionPosition }: WordCartProps) {
             className="fixed z-[9999] word-cart-tooltip"
             style={{ left: tooltipPos.x, top: tooltipPos.y }}
           >
-            <div className="px-3 py-2 rounded-xl text-xs font-semibold text-white shadow-lg flex items-center gap-1.5 cursor-pointer"
-              style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}
+            <div className="px-3 py-2 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 flex items-center gap-1.5 cursor-pointer bg-indigo-600 hover:bg-indigo-500 transition-all duration-300"
               onClick={handleSaveSelection}
             >
               <BookmarkPlus className="w-3.5 h-3.5" />
@@ -124,11 +123,7 @@ export function WordCart({ selectedText, selectionPosition }: WordCartProps) {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsOpen(!isOpen)}
-          className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl relative"
-          style={{
-            background: "linear-gradient(135deg, #4F46E5, #7C3AED)",
-            boxShadow: "0 8px 32px rgba(79,70,229,0.4)",
-          }}
+          className="w-14 h-14 rounded-full flex items-center justify-center relative bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all duration-300"
         >
           <BookmarkCheck className="w-6 h-6 text-white" />
           {words.length > 0 && (
@@ -142,47 +137,46 @@ export function WordCart({ selectedText, selectionPosition }: WordCartProps) {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              initial={{ opacity: 0, y: 16, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className="absolute bottom-16 right-0 w-72 bg-white rounded-3xl overflow-hidden shadow-2xl"
-              style={{ border: "1px solid #E5E7EB" }}
+              exit={{ opacity: 0, y: 16, scale: 0.95 }}
+              transition={{ duration: 0.25 }}
+              className="absolute bottom-16 right-0 w-72 bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-200/60"
             >
-              <div className="p-4 border-b" style={{ borderColor: "#F1F5F9", background: "#F8FAFC" }}>
+              <div className="p-4 border-b border-slate-200/60 bg-slate-50">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold" style={{ color: "#1E293B" }}>Giỏ từ VIP</h3>
-                  <span className="text-xs font-medium text-gray-400">{words.length}/10 từ</span>
+                  <h3 className="text-sm font-bold text-slate-900">Giỏ từ VIP</h3>
+                  <span className="text-xs font-medium text-slate-400">{words.length}/10 từ</span>
                 </div>
               </div>
 
               <div className="max-h-60 overflow-y-auto p-2">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#4F46E5" }} />
+                    <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
                   </div>
                 ) : words.length === 0 ? (
                   <div className="text-center py-8">
-                    <BookmarkCheck className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p className="text-xs text-gray-400">Bôi đen từ vựng để lưu vào giỏ từ</p>
+                    <BookmarkCheck className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p className="text-xs text-slate-400">Bôi đen từ vựng để lưu vào giỏ từ</p>
                   </div>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="divide-y divide-slate-100">
                     {words.map((item) => (
                       <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 group"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-100/50 hover:scale-[1.01] transition-all duration-300 group"
                       >
-                        <span className="text-sm font-medium text-gray-700">{item.word}</span>
+                        <span className="text-sm font-medium text-slate-700">{item.word}</span>
                         <motion.button
-                          whileHover={{ scale: 1.2, background: "#FEE2E2" }}
+                          whileHover={{ scale: 1.2 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => handleRemoveWord(item.word)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="w-7 h-7 rounded-full hover:bg-rose-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
                         >
-                          <X className="w-3.5 h-3.5 text-red-400" />
+                          <X className="w-3.5 h-3.5 text-rose-400" />
                         </motion.button>
                       </motion.div>
                     ))}
@@ -192,7 +186,7 @@ export function WordCart({ selectedText, selectionPosition }: WordCartProps) {
 
               {/* Warning if limit reached */}
               {words.length >= 10 && (
-                <div className="px-4 py-3 border-t flex items-start gap-2" style={{ borderColor: "#F1F5F9", background: "#FFFBEB" }}>
+                <div className="px-4 py-3 border-t border-amber-100 bg-amber-50 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-amber-700">Đã đạt giới hạn 10 từ. Hãy chờ xử lý vào 2h sáng mai.</p>
                 </div>

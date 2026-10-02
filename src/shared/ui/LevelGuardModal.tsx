@@ -28,8 +28,13 @@ export function LevelGuardModal() {
 
         window.addEventListener("REQUIRE_PLACEMENT_TEST", handleRequireTest);
 
+        // Cho phép các trang overlay khóa riêng đóng modal này khi chúng tự xử lý điều hướng
+        const handleCloseGuard = () => setIsOpen(false);
+        window.addEventListener("CLOSE_LEVEL_GUARD", handleCloseGuard);
+
         return () => {
             window.removeEventListener("REQUIRE_PLACEMENT_TEST", handleRequireTest);
+            window.removeEventListener("CLOSE_LEVEL_GUARD", handleCloseGuard);
         };
     }, []);
 

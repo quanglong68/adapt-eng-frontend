@@ -35,10 +35,13 @@ import { WritingPracticeExecution } from "../features/toeic-writing/ui/WritingPr
 import { WritingPracticeResult } from "../features/toeic-writing/ui/WritingPracticeResult";
 import { WritingPracticeReviewMistakes } from "../features/toeic-writing/ui/WritingPracticeReviewMistakes";
 import { WritingPracticeHistory } from "../features/toeic-writing/ui/WritingPracticeHistory";
+import { WritingCombinedExecution } from "../features/toeic-writing/ui/WritingCombinedExecution";
+import { WritingCombinedResult } from "../features/toeic-writing/ui/WritingCombinedResult";
+import { WritingCombinedHistory } from "../features/toeic-writing/ui/WritingCombinedHistory";
 
 export default function App() {
   return (
-    <div style={{ fontFamily: "'Poppins', sans-serif", background: "#F9FAFB", minHeight: "100vh" }}>
+    <div className="bg-slate-50 text-slate-900 antialiased" style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif", minHeight: "100vh" }}>
       <BrowserRouter>
         <Toaster
           position="top-right"
@@ -96,6 +99,12 @@ export default function App() {
           <Route path="/toeic/writing/practice-result" element={<WritingPracticeResult />} />
           <Route path="/toeic/writing/practice-review-mistakes" element={<WritingPracticeReviewMistakes />} />
           <Route path="/toeic/writing/practice-history" element={<WritingPracticeHistory />} />
+
+          {/* SESSION HỖN HỢP 3xP1 + P2 + P3 */}
+          <Route path="/toeic/writing/combined-practice" element={<WritingCombinedExecution mode="daily" />} />
+          <Route path="/toeic/writing/combined-test/:level" element={<WritingCombinedExecution mode="test" />} />
+          <Route path="/toeic/writing/combined-result" element={<WritingCombinedResult />} />
+          <Route path="/toeic/writing/combined-history" element={<WritingCombinedHistory />} />
         </Routes>
       </BrowserRouter>
     </div>

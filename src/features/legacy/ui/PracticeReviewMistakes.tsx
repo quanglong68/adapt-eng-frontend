@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { MistakeCard } from "../../../shared/ui";
@@ -18,7 +18,7 @@ export function PracticeReviewMistakes() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <h2 className="text-xl font-bold text-slate-700 mb-4">Không tìm thấy dữ liệu xem lại!</h2>
-        <button onClick={() => navigate("/")} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold">
+        <button onClick={() => navigate("/")} className="px-6 py-3 bg-indigo-600 text-white rounded-full font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">
           Quay lại trang chủ
         </button>
       </div>
@@ -26,16 +26,16 @@ export function PracticeReviewMistakes() {
   }
 
   return (
-    <div className="min-h-screen py-10 px-8" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
+    <div className="min-h-screen py-10 px-8 bg-slate-50">
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: "#1E293B" }}>Chi tiết kết quả ôn tập 📝</h1>
-            <p className="text-sm mt-1" style={{ color: "#64748B" }}>Phân tích sâu từ AI giúp bạn nhớ từ vựng lâu hơn</p>
+            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">Chi tiết kết quả ôn tập <FileText className="w-5 h-5 text-slate-400" /></h1>
+            <p className="text-sm mt-1 text-slate-500">Phân tích sâu từ AI giúp bạn nhớ từ vựng lâu hơn</p>
           </div>
           <div className="flex gap-2">
-            <div className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: "#F0FDF4", color: "#10B981" }}>
-              ✅ Khớp: {practiceResult.correctAnswers} câu
+            <div className="px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-600 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4" /> Khớp: {practiceResult.correctAnswers} câu
             </div>
           </div>
         </motion.div>
@@ -68,7 +68,7 @@ export function PracticeReviewMistakes() {
                 state: { dataResult: practiceResult, originalQuestions: originalQuestions },
               })
             }
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-800 text-white font-semibold rounded-2xl hover:bg-slate-900 transition shadow-md"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-800 text-white font-semibold rounded-full hover:bg-slate-900 transition shadow-md"
           >
             <ArrowLeft className="w-4 h-4" />
             Quay lại bảng điểm ôn tập

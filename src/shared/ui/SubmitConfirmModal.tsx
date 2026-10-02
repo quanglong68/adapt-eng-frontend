@@ -36,13 +36,13 @@ export function SubmitConfirmModal({
             <div className="flex gap-3">
               <button
                 onClick={onCancel}
-                className="flex-1 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition"
+                className="flex-1 py-3 bg-slate-100 text-slate-700 font-semibold rounded-full hover:bg-slate-100/50 transition"
               >
                 {cancelLabel}
               </button>
               <button
                 onClick={onConfirm}
-                className={`flex-1 py-3 text-white font-semibold rounded-xl hover:opacity-90 transition shadow-lg ${confirmShadow}`}
+                className={`flex-1 py-3 text-white font-semibold rounded-full hover:opacity-90 transition shadow-lg ${confirmShadow}`}
                 style={{ background: confirmColor }}
               >
                 {confirmLabel}

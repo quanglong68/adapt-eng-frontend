@@ -55,7 +55,7 @@ export function StandardExecutionLayout({
   const themeConfig: ExecutionThemeConfig = EXECUTION_THEMES[theme];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F9FAFB", fontFamily: "'Poppins', sans-serif" }}>
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <ExitModal
         isOpen={showExit}
         title={exitTitle}
@@ -68,16 +68,15 @@ export function StandardExecutionLayout({
       />
 
       <div
-        className="bg-white border-b flex items-center gap-5 px-8 py-4"
-        style={{ borderColor: "#E5E7EB", boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}
+        className="bg-white border-b border-slate-200 shadow-sm flex items-center gap-5 px-8 py-4"
       >
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold" style={{ color: "#1E293B" }}>
+              <span className="text-sm font-bold text-slate-800">
                 {questionLabel} {currentNumber}
               </span>
-              <span className="text-sm" style={{ color: "#94A3B8" }}>
+              <span className="text-sm text-slate-400">
                 / {totalQuestions}
               </span>
             </div>
@@ -99,8 +98,7 @@ export function StandardExecutionLayout({
           whileHover={{ scale: 1.08, background: "#FEF2F2" }}
           whileTap={{ scale: 0.94 }}
           onClick={onShowExit}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0"
-          style={{ background: "#F8FAFC", color: "#94A3B8" }}
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0 bg-slate-50 text-slate-400 hover:bg-slate-100/50"
         >
           <X className="w-5 h-5" />
         </motion.button>
@@ -114,8 +112,7 @@ export function StandardExecutionLayout({
       </div>
 
       <div
-        className="bg-white border-t flex items-center px-8 py-5 relative"
-        style={{ borderColor: "#E5E7EB", boxShadow: "0 -4px 20px rgba(0,0,0,0.05)" }}
+        className="bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex items-center px-8 py-5 relative"
       >
         <div className="flex-1 flex justify-start">
           <motion.button
@@ -123,13 +120,7 @@ export function StandardExecutionLayout({
             whileHover={{ scale: canGoBack ? 1.02 : 1 }}
             whileTap={{ scale: canGoBack ? 0.98 : 1 }}
             onClick={onBack}
-            className="flex items-center justify-center px-6 py-3.5 rounded-xl font-semibold text-sm transition-all"
-            style={{
-              background: !canGoBack ? "#F8FAFC" : "#F1F5F9",
-              color: !canGoBack ? "#CBD5E1" : "#64748B",
-              cursor: !canGoBack ? "not-allowed" : "pointer",
-              border: "1px solid #E5E7EB",
-            }}
+            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-semibold text-sm transition-all border border-slate-200 hover:bg-slate-100/50 ${!canGoBack ? "bg-slate-50 text-slate-300 cursor-not-allowed" : "bg-slate-100 text-slate-500 cursor-pointer"}`}
           >
             Quay lại
           </motion.button>
@@ -137,12 +128,10 @@ export function StandardExecutionLayout({
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
           <div
-            className="w-2 h-2 rounded-full"
-            style={{ background: selectedAnswer ? "#10B981" : "#E5E7EB" }}
+            className={`w-2 h-2 rounded-full ${selectedAnswer ? "bg-emerald-500" : "bg-slate-200"}`}
           />
           <span
-            className="text-sm font-medium"
-            style={{ color: selectedAnswer ? "#10B981" : "#94A3B8" }}
+            className={`text-sm font-medium ${selectedAnswer ? "text-emerald-600" : "text-slate-400"}`}
           >
             {selectedAnswer ? `Đã chọn: ${selectedAnswer}` : "Chưa chọn đáp án"}
           </span>
@@ -154,15 +143,16 @@ export function StandardExecutionLayout({
             whileHover={{ scale: !nextDisabled ? 1.02 : 1 }}
             whileTap={{ scale: !nextDisabled ? 0.98 : 1 }}
             onClick={onNext}
-            className="flex items-center gap-2 px-10 py-3.5 rounded-xl font-semibold text-sm transition-all"
-            style={{
-              background: !nextDisabled
-                ? `linear-gradient(135deg, ${themeConfig.gradientFrom}, ${themeConfig.gradientTo})`
-                : "#E5E7EB",
-              color: !nextDisabled ? "#fff" : "#94A3B8",
-              cursor: !nextDisabled ? "pointer" : "not-allowed",
-              boxShadow: !nextDisabled ? `0 4px 16px ${themeConfig.primary}4D` : "none",
-            }}
+            className={`flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold text-sm transition-all ${!nextDisabled ? "text-white shadow-lg" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+            style={
+              !nextDisabled
+                ? {
+                    background: `linear-gradient(135deg, ${themeConfig.gradientFrom}, ${themeConfig.gradientTo})`,
+                    boxShadow: `0 4px 16px ${themeConfig.primary}4D`,
+                    cursor: "pointer",
+                  }
+                : undefined
+            }
           >
             {nextLabel}
             <ChevronRight className="w-4 h-4" />

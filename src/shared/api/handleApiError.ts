@@ -23,6 +23,11 @@ export function handleApiError(error: unknown, fallback: string): string {
     console.error(fallback, error);
   }
   const message = truncateMessage(getApiErrorMessage(error, fallback));
+  // Lỗi thiếu level đã có LevelGuardModal + overlay khóa của từng trang lo UX,
+  // không toast mã thô ra màn hình.
+  if (message === "REQUIRE_PLACEMENT_TEST" || message === "REQUIRE_WRITING_PLACEMENT_TEST") {
+    return message;
+  }
   toast.error(message);
   return message;
 }

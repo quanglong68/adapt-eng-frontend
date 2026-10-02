@@ -1,5 +1,5 @@
 
-export type NotificationType = 'SYSTEM' | 'AI_DEEP_DIVE' | 'BILLING' | 'PRACTICE_REMINDER';
+export type NotificationType = 'SYSTEM' | 'AI_DEEP_DIVE' | 'VIP_ENTERTAINMENT_READY' | 'BILLING' | 'PRACTICE_REMINDER';
 
 export interface AppNotification {
     id: string;

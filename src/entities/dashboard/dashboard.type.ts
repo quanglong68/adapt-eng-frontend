@@ -26,4 +26,10 @@ export interface DashboardSummaryResponse {
   dailyMissionCount: number;
   recentActivities: RecentActivity[];
   levelUpProgress?: LevelUpProgress; // 🚀 BỔ SUNG FIELD NÀY
+  // Tách số liệu nhiệm vụ theo kỹ năng (BE mới trả, optional để tương thích)
+  writingMissionCount?: number;
+  writingPart1Count?: number;
+  writingPart2Count?: number;
+  writingPart3Count?: number;
+  readingMissionCount?: number;
 }

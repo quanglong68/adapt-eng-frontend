@@ -34,9 +34,11 @@ apiClient.interceptors.response.use(
     if (errorMessage === "REQUIRE_PLACEMENT_TEST") {
       // 1. Phát loa thông báo gọi cái Guard Modal hiện lên che màn hình
       window.dispatchEvent(new CustomEvent("REQUIRE_PLACEMENT_TEST"));
-      
-      // 2. Phép thuật đóng băng: Dừng tất cả mọi luồng code đang chờ API này
-      return new Promise(() => {}); 
+
+      // 2. Trả lỗi về cho caller để trang gọi không bị treo loader vô hạn
+      // (trước đây return Promise không bao giờ resolve gây trắng màn hình).
+      // Các trang tự hiển thị overlay khóa riêng; modal toàn cục vẫn mở như cũ.
+      return Promise.reject(error);
     }
 
     // Riêng môn Writing chưa có Level -> đưa sang flow thi Writing Placement Test
@@ -45,7 +47,7 @@ apiClient.interceptors.response.use(
       window.dispatchEvent(new CustomEvent("REQUIRE_PLACEMENT_TEST", {
         detail: { skill: "WRITING" }
       }));
-      return new Promise(() => {});
+      return Promise.reject(error);
     }
     
     // Xử lý luôn lỗi hết hạn Token (401) để tự động văng ra ngoài màn hình Đăng nhập
